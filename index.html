@@ -317,6 +317,12 @@
 
             <div class="card">
                 <h2>Color Mixer</h2>
+                
+                <div class="slider-wrap" style="margin-bottom: 25px;">
+                    <div class="slider-label"><span>Pearlescent Simulation</span></div>
+                    <select id="pearl-select" onchange="updatePearl()"></select>
+                </div>
+
                 <div class="input-row">
                     <input type="text" id="hex-input" value="#000000" maxlength="9" oninput="updateFromHex(this.value)">
                 </div>
@@ -331,10 +337,6 @@
                 <div class="slider-wrap">
                     <div class="slider-label"><span>Blue</span><span id="val-b">0</span></div>
                     <input type="range" id="range-b" min="0" max="255" value="0" style="--thumb-color: #4444ff" oninput="updateFromRGB()">
-                </div>
-                <div class="slider-wrap" style="margin-top: 25px;">
-                    <div class="slider-label"><span>Pearlescent Simulation</span></div>
-                    <select id="pearl-select" onchange="updatePearl()"></select>
                 </div>
             </div>
         </div>
@@ -482,8 +484,10 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v5.4</h2>
+        <h2>Change Log v5.6</h2>
         <ul>
+            <li><b>UI Adjustment:</b> Moved Pearlescent dropdown above sliders to prevent scrolling issues on mobile.</li>
+            <li><b>Restored Pearls:</b> Added all 75+ GTA Pearlescent colors.</li>
             <li><b>Library Fix:</b> Removed limit to show all colors.</li>
             <li><b>Save UX:</b> Name and Manufacturer fields now blank by default.</li>
             <li><b>Edit Feature:</b> Edit saved colors.</li>
@@ -524,7 +528,35 @@
 
 <script>
 /* --- DATA & CONFIG --- */
-const PEARLS=[{n:"None",h:"transparent"},{n:"Ice White",h:"#F0F0F0"},{n:"Race Yellow",h:"#D6B831"},{n:"Hot Pink",h:"#941E57"},{n:"Ultra Blue",h:"#296694"},{n:"Lime Green",h:"#5B7D30"},{n:"Sunrise Orange",h:"#B55E24"}];
+const PEARLS = [
+    {n: "None (Standard)", h: "transparent"},
+    {n: "Black", h: "#000000"}, {n: "Carbon Black", h: "#0F0F0F"}, {n: "Graphite", h: "#1C1D21"},
+    {n: "Anthracite Black", h: "#17161C"}, {n: "Black Steel", h: "#2A2D35"}, {n: "Dark Steel", h: "#39434D"},
+    {n: "Silver", h: "#5C6066"}, {n: "Bluish Silver", h: "#6D7682"}, {n: "Rolled Steel", h: "#4D5359"},
+    {n: "Shadow Silver", h: "#2F353B"}, {n: "Stone Silver", h: "#363A3F"}, {n: "Midnight Silver", h: "#202329"},
+    {n: "Cast Iron Silver", h: "#444E54"}, {n: "Red", h: "#8F2121"}, {n: "Torino Red", h: "#851F21"},
+    {n: "Formula Red", h: "#6B1B1B"}, {n: "Lava Red", h: "#8A1717"}, {n: "Blaze Red", h: "#8F2121"},
+    {n: "Grace Red", h: "#592328"}, {n: "Garnet Red", h: "#4C1519"}, {n: "Sunset Red", h: "#521A1E"},
+    {n: "Cabernet Red", h: "#361217"}, {n: "Wine Red", h: "#1C1014"}, {n: "Candy Red", h: "#80121D"},
+    {n: "Hot Pink", h: "#941E57"}, {n: "Pfister Pink", h: "#752445"}, {n: "Salmon Pink", h: "#B55C5E"},
+    {n: "Sunrise Orange", h: "#B55E24"}, {n: "Orange", h: "#B06021"}, {n: "Bright Orange", h: "#D67026"},
+    {n: "Gold", h: "#806636"}, {n: "Bronze", h: "#524430"}, {n: "Yellow", h: "#E6B825"},
+    {n: "Race Yellow", h: "#D6B831"}, {n: "Dew Yellow", h: "#8A913B"}, {n: "Dark Green", h: "#192624"},
+    {n: "Racing Green", h: "#213633"}, {n: "Sea Green", h: "#355957"}, {n: "Olive Green", h: "#474F3B"},
+    {n: "Bright Green", h: "#42692F"}, {n: "Gasoline Green", h: "#335252"}, {n: "Lime Green", h: "#5B7D30"},
+    {n: "Midnight Blue", h: "#162130"}, {n: "Galaxy Blue", h: "#1C262E"}, {n: "Dark Blue", h: "#121A26"},
+    {n: "Saxon Blue", h: "#283C52"}, {n: "Blue", h: "#365675"}, {n: "Mariner Blue", h: "#374F5C"},
+    {n: "Harbor Blue", h: "#303C4D"}, {n: "Diamond Blue", h: "#99BAD6"}, {n: "Surf Blue", h: "#5488A8"},
+    {n: "Nautical Blue", h: "#2E4759"}, {n: "Racing Blue", h: "#26487A"}, {n: "Ultra Blue", h: "#296694"},
+    {n: "Light Blue", h: "#5480A6"}, {n: "Chocolate Brown", h: "#38291F"}, {n: "Bison Brown", h: "#2E241E"},
+    {n: "Creek Brown", h: "#2E2621"}, {n: "Feltzer Brown", h: "#3B2921"}, {n: "Maple Brown", h: "#473024"},
+    {n: "Beechwood Brown", h: "#5E4633"}, {n: "Sienna Brown", h: "#5E432E"}, {n: "Saddle Brown", h: "#4F3325"},
+    {n: "Moss Brown", h: "#47453B"}, {n: "Woodbeech Brown", h: "#66543D"}, {n: "Straw Brown", h: "#635845"},
+    {n: "Sandy Brown", h: "#75634F"}, {n: "Bleached Brown", h: "#6B5F54"}, {n: "Schafter Purple", h: "#292C3D"},
+    {n: "Midnight Purple", h: "#1B1724"}, {n: "Bright Purple", h: "#3D2247"}, {n: "Cream", h: "#CFCCB8"},
+    {n: "Ice White", h: "#F0F0F0"}, {n: "Frost White", h: "#B3B9C2"}
+];
+
 const FALLBACK_LIB=[{man:"Ferrari",name:"Rosso Corsa",hex:"#D40000",end:"",pearl:"-",img:"",credit:"Community",notes:"Standard Red"}];
 
 let state = {
