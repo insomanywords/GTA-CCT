@@ -482,11 +482,12 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v5.2</h2>
+        <h2>Change Log v5.4</h2>
         <ul>
-            <li><b>Edit Feature:</b> You can now edit saved custom colors.</li>
-            <li><b>Safe Delete:</b> Added a confirmation modal preventing accidental deletions.</li>
-            <li><b>UI Update:</b> Moved delete button inside detail view to prevent overlap.</li>
+            <li><b>Library Fix:</b> Removed limit to show all colors.</li>
+            <li><b>Save UX:</b> Name and Manufacturer fields now blank by default.</li>
+            <li><b>Edit Feature:</b> Edit saved colors.</li>
+            <li><b>Safe Delete:</b> Confirmation modal added.</li>
         </ul>
     </div>
 </div>
@@ -653,7 +654,7 @@ function renderLibrary(){
         const mCat=state.filterCat==='All'||c.man===state.filterCat;
         const mTxt=c.name.toLowerCase().includes(state.filterText)||c.man.toLowerCase().includes(state.filterText);
         return mCat&&mTxt;
-    }).slice(0,100);
+    });
 
     list.forEach(c=>{
         const el=document.createElement('div'); el.className='swatch';
@@ -829,7 +830,7 @@ function openSaveModal() {
 }
 
 function confirmSave() {
-    const name = document.getElementById('save-name-input').value || state.name;
+    const name = document.getElementById('save-name-input').value || state.name || "Custom Mix";
     const manuf = document.getElementById('save-manuf-input').value || "Custom";
     const end = document.getElementById('save-end-input').value || "";
     const pearl = document.getElementById('save-pearl-input').value || "-";
