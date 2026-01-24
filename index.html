@@ -540,6 +540,16 @@
         <div class="input-group"><label>Color Name</label><input type="text" id="edit-name-input"></div>
         <div class="input-group"><label>Hex Code</label><input type="text" id="edit-hex-input"></div>
         <div class="input-group"><label>Manufacturer</label><input type="text" id="edit-manuf-input"></div>
+        
+        <div class="btn-grid">
+            <div class="input-group"><label>Pearlescent</label><input type="text" id="edit-pearl-input"></div>
+            <div class="input-group"><label>Secondary</label><input type="text" id="edit-sec-input"></div>
+        </div>
+        <div class="btn-grid">
+            <div class="input-group"><label>Wheel Color</label><input type="text" id="edit-wheel-input"></div>
+            <div class="input-group"><label>End Code</label><input type="text" id="edit-end-input"></div>
+        </div>
+
         <div class="input-group"><label>Notes</label><textarea id="edit-note-input"></textarea></div>
         <button class="btn btn-primary" style="margin-top:15px;" onclick="saveEdit()">Update</button>
     </div>
@@ -559,11 +569,11 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v6.6</h2>
+        <h2>Change Log v6.7</h2>
         <ul>
-            <li><b>Tools Update:</b> Improved instructions for Android Bookmarklet injection.</li>
-            <li><b>Script Update:</b> Injector script now includes error handling for safer use.</li>
-            <li><b>UI Update:</b> Copy Toast now displays the exact hex code copied.</li>
+            <li><b>Data Preservation:</b> Saved colors now persist across all future updates.</li>
+            <li><b>Smart Save:</b> Saving a library color now pre-fills manufacturer and pearl info.</li>
+            <li><b>Complete Edit:</b> Edit modal now includes all fields (Pearls, Wheels, etc).</li>
         </ul>
     </div>
 </div>
@@ -604,6 +614,7 @@
 
 <script>
 /* --- CONFIG & DATA --- */
+const STORAGE_KEY = 'gta_tool_storage'; // Permanent Storage Key
 const PEARLS = [
     {n: "None (Standard)", h: "transparent"},
     {n: "Black", h: "#000000"}, {n: "Carbon Black", h: "#0F0F0F"}, {n: "Graphite", h: "#1C1D21"},
@@ -637,13 +648,26 @@ const FALLBACK_LIB=[{man:"Ferrari",name:"Rosso Corsa",hex:"#D40000",end:"",pearl
 
 let state = {
     r:0, g:0, b:0, hex:"#000000", endCode:"", name:"Black",
-    favs: JSON.parse(localStorage.getItem('gta_pwa_favs_v3')||'[]'), // v3 for new schema
+    favs: [], 
     library: [], filterCat:'All', filterText:'',
-    pendingActionIndex: -1
+    pendingActionIndex: -1,
+    loadedInfo: {} // Tracks info of loaded library color
 };
 
 /* --- INIT --- */
 (function(){
+    // Migration Logic: Check new key, if empty, look for old key
+    const data = localStorage.getItem(STORAGE_KEY);
+    if(data) {
+        state.favs = JSON.parse(data);
+    } else {
+        const oldData = localStorage.getItem('gta_pwa_favs_v3');
+        if(oldData) {
+            state.favs = JSON.parse(oldData);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favs));
+        }
+    }
+
     // Check URL Params for Sharing
     const params = new URLSearchParams(window.location.search);
     if(params.has('hex')){
@@ -656,7 +680,6 @@ let state = {
     PEARLS.forEach(p=>{const o=document.createElement('option');o.value=p.h;o.textContent=p.n;pSelect.appendChild(o)});
     updateFromHex("#000000");
     
-    // Global Modal Click Outside
     window.onclick = function(event) {
         if (event.target.classList.contains('modal-overlay')) {
             event.target.classList.remove('open');
@@ -676,6 +699,7 @@ function updateFromRGB(){
     state.b=parseInt(document.getElementById('range-b').value);
     state.hex="#"+((1<<24)+(state.r<<16)+(state.g<<8)+state.b).toString(16).slice(1).toUpperCase();
     state.name="Custom Mix"; state.endCode="";
+    state.loadedInfo = {}; // Clear loaded info on manual change
     syncUI();
 }
 
@@ -719,7 +743,6 @@ function copyShareLink(){
 }
 
 function copyInjectorCode(){
-    // Revised script with error handling for input existence
     const code = "javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){var i=document.getElementById('crewColor');if(i){i.value='#'+p.replace('#','');alert('Color Injected! Click Save.');}else{alert('Error: Input not found. Are you on the Edit Crew page?');}}})()";
     navigator.clipboard.writeText(code).then(()=>toast("Script Copied!"));
 }
@@ -766,13 +789,17 @@ function handleImageUpload(input) {
 
 /* --- SAVE & BUILD SYSTEM --- */
 function openSaveModal() {
-    document.getElementById('save-name-input').value = "";
-    document.getElementById('save-manuf-input').value = "";
-    document.getElementById('save-end-input').value = state.endCode || "";
-    document.getElementById('save-pearl-input').value = "";
-    document.getElementById('save-sec-input').value = "";
-    document.getElementById('save-wheel-input').value = "";
-    document.getElementById('save-note-input').value = "";
+    // Pre-fill with loaded info if available
+    const info = state.loadedInfo || {};
+    
+    document.getElementById('save-name-input').value = state.name || "";
+    document.getElementById('save-manuf-input').value = info.man || "";
+    document.getElementById('save-end-input').value = state.endCode || info.end || "";
+    document.getElementById('save-pearl-input').value = info.pearl || "";
+    document.getElementById('save-sec-input').value = info.sec || "";
+    document.getElementById('save-wheel-input').value = info.wheel || "";
+    document.getElementById('save-note-input').value = info.notes || "";
+    
     document.getElementById('save-modal').classList.add('open');
 }
 
@@ -787,7 +814,7 @@ function confirmSave() {
         wheel: document.getElementById('save-wheel-input').value,
         notes: document.getElementById('save-note-input').value
     });
-    localStorage.setItem('gta_pwa_favs_v3', JSON.stringify(state.favs));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favs));
     closeModal('save-modal');
     toast("Build Saved!");
 }
@@ -795,10 +822,15 @@ function confirmSave() {
 function openEditModal() {
     closeModal('detail-modal');
     const item = state.favs[state.pendingActionIndex];
-    document.getElementById('edit-name-input').value = item.n;
-    document.getElementById('edit-hex-input').value = item.h;
+    document.getElementById('edit-name-input').value = item.n || "";
+    document.getElementById('edit-hex-input').value = item.h || "";
     document.getElementById('edit-manuf-input').value = item.man || "";
+    document.getElementById('edit-end-input').value = item.e || "";
+    document.getElementById('edit-pearl-input').value = item.pearl || "";
+    document.getElementById('edit-sec-input').value = item.sec || "";
+    document.getElementById('edit-wheel-input').value = item.wheel || "";
     document.getElementById('edit-note-input').value = item.notes || "";
+    
     document.getElementById('edit-modal').classList.add('open');
 }
 
@@ -807,9 +839,13 @@ function saveEdit() {
     item.n = document.getElementById('edit-name-input').value;
     item.h = document.getElementById('edit-hex-input').value;
     item.man = document.getElementById('edit-manuf-input').value;
+    item.e = document.getElementById('edit-end-input').value;
+    item.pearl = document.getElementById('edit-pearl-input').value;
+    item.sec = document.getElementById('edit-sec-input').value;
+    item.wheel = document.getElementById('edit-wheel-input').value;
     item.notes = document.getElementById('edit-note-input').value;
     
-    localStorage.setItem('gta_pwa_favs_v3', JSON.stringify(state.favs));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favs));
     closeModal('edit-modal');
     renderSaved();
     toast("Updated!");
@@ -854,9 +890,9 @@ function renderLibrary(){
     .forEach(c=>{
         const el=document.createElement('div'); el.className='swatch';
         el.innerHTML=`
-            <div class="swatch-color" style="background:${c.hex}" onclick="loadColor('${c.hex}','${c.name}','${c.end}')"><div class="swatch-manuf">${c.man}</div></div>
+            <div class="swatch-color" style="background:${c.hex}" onclick="loadColor('${c.hex}','${c.name}','${c.end}', {man:'${c.man}', pearl:'${c.pearl}', notes:'${c.notes}'})"><div class="swatch-manuf">${c.man}</div></div>
             <div class="swatch-detail-btn" onclick="openDetail(this)">🔍</div>
-            <div class="swatch-meta" onclick="loadColor('${c.hex}','${c.name}','${c.end}')"><b>${c.name}</b><span class="meta-hex">${c.hex}${c.end}</span><div class="meta-credit">By: <span>${c.credit}</span></div></div>`;
+            <div class="swatch-meta" onclick="loadColor('${c.hex}','${c.name}','${c.end}', {man:'${c.man}', pearl:'${c.pearl}', notes:'${c.notes}'})"><b>${c.name}</b><span class="meta-hex">${c.hex}${c.end}</span><div class="meta-credit">By: <span>${c.credit}</span></div></div>`;
         el.dataset.json = JSON.stringify(c);
         g.appendChild(el);
     });
@@ -892,7 +928,10 @@ function openDetail(btn){
         }
     }
 
-    document.getElementById('modal-load-btn').onclick = () => { loadColor(data.hex, data.name, data.end); closeModal('detail-modal'); };
+    document.getElementById('modal-load-btn').onclick = () => { 
+        loadColor(data.hex, data.name, data.end, data); 
+        closeModal('detail-modal'); 
+    };
 
     const delBtn = document.getElementById('modal-delete-btn');
     const editBtn = document.getElementById('modal-edit-btn');
@@ -902,7 +941,7 @@ function openDetail(btn){
         editBtn.style.display = 'block';
         document.getElementById('confirm-delete-btn').onclick = () => {
             state.favs.splice(state.pendingActionIndex, 1);
-            localStorage.setItem('gta_pwa_favs_v3', JSON.stringify(state.favs));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favs));
             closeModal('delete-modal'); renderSaved(); toast("Deleted");
         };
         delBtn.onclick = () => { closeModal('detail-modal'); document.getElementById('delete-modal').classList.add('open'); };
@@ -924,34 +963,28 @@ function renderSaved(){
     list.forEach((c,i)=>{
         const el=document.createElement('div'); el.className='swatch';
         el.innerHTML=`
-            <div class="swatch-color" style="background:${c.h}" onclick="loadColor('${c.h}','${c.n}','${c.e}')"><div class="swatch-manuf">${c.man}</div></div>
+            <div class="swatch-color" style="background:${c.h}" onclick="loadColor('${c.h}','${c.n}','${c.e}', {man:'${c.man}', pearl:'${c.pearl}', notes:'${c.notes}', sec:'${c.sec}', wheel:'${c.wheel}'})"><div class="swatch-manuf">${c.man}</div></div>
             <div class="swatch-detail-btn" onclick="openDetail(this)">🔍</div>
-            <div class="swatch-meta" onclick="loadColor('${c.h}','${c.n}','${c.e}')"><b>${c.n}</b><span class="meta-hex">${c.h}${c.e||""}</span></div>`;
+            <div class="swatch-meta" onclick="loadColor('${c.h}','${c.n}','${c.e}', {man:'${c.man}', pearl:'${c.pearl}', notes:'${c.notes}', sec:'${c.sec}', wheel:'${c.wheel}'})"><b>${c.n}</b><span class="meta-hex">${c.h}${c.e||""}</span></div>`;
         
-        // CORRECTION: Map Saved Short Keys to Modal Standard Keys
+        // Data passed to modal
         const modalData = { 
-            name: c.n, 
-            hex: c.h, 
-            end: c.e, 
-            notes: c.notes, 
-            man: c.man, 
-            credit: "You", 
-            pearl: c.pearl, 
-            sec: c.sec,
-            wheel: c.wheel,
-            img: "",
-            isSaved: true, 
-            index: i 
+            name: c.n, hex: c.h, end: c.e, notes: c.notes, 
+            man: c.man, credit: "You", pearl: c.pearl, 
+            sec: c.sec, wheel: c.wheel, img: "",
+            isSaved: true, index: i 
         };
         el.dataset.json = JSON.stringify(modalData);
         g.appendChild(el);
     });
 }
 
-function loadColor(hex, name, end){
+function loadColor(hex, name, end, info){
     updateFromHex(hex);
     state.name = name;
     state.endCode = end || "";
+    // Store loaded metadata to use when saving
+    state.loadedInfo = info || {};
     syncUI();
     nav('editor', document.querySelectorAll('.nav-item')[0]);
 }
@@ -974,7 +1007,7 @@ function toast(msg){ const t=document.getElementById('toast');t.innerText=msg;t.
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function toggleGuide(h){ h.nextElementSibling.classList.toggle('open'); }
 function exportFavs(){ const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(state.favs)); a.download="gta_colors.json"; a.click(); }
-function importFavs(){ const i=document.createElement('input'); i.type='file'; i.onchange=e=>{const r=new FileReader(); r.onload=x=>{state.favs=JSON.parse(x.target.result); localStorage.setItem('gta_pwa_favs_v3',JSON.stringify(state.favs)); renderSaved(); toast("Imported!");}; r.readAsText(e.target.files[0]);}; i.click(); }
+function importFavs(){ const i=document.createElement('input'); i.type='file'; i.onchange=e=>{const r=new FileReader(); r.onload=x=>{state.favs=JSON.parse(x.target.result); localStorage.setItem(STORAGE_KEY,JSON.stringify(state.favs)); renderSaved(); toast("Imported!");}; r.readAsText(e.target.files[0]);}; i.click(); }
 
 </script>
 </body>
