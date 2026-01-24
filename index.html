@@ -518,7 +518,7 @@
                 <h3>1. Social Club Injector</h3>
                 <p style="margin-bottom:15px; font-size:0.85rem; color:#aaa;">Drag button to bookmarks (Desktop) or Copy code (Mobile).</p>
                 
-                <a href="javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){var i=document.getElementById('crewColor');if(i){i.value='#'+p.replace('#','');alert('Color Injected! Click Save.');}else{alert('Error: Input not found. Are you on the Edit Crew page?');}}})()" class="bookmark-btn" onclick="event.preventDefault();alert('Drag this button to your bookmarks bar!');">
+                <a href="javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){var hex='#'+p.replace('#','');var hidden=document.getElementById('crewColor');var visible=document.getElementById('createCrewFormColor');if(hidden){hidden.value=hex;}if(visible){visible.value=hex;visible.dispatchEvent(new Event('input',{bubbles:true}));visible.dispatchEvent(new Event('change',{bubbles:true}));visible.dispatchEvent(new Event('blur',{bubbles:true}));}if(hidden||visible){alert('Color Injected! Click Save.');}else{alert('Error: Input not found. Go to Edit Crew page.');}}})()" class="bookmark-btn" onclick="event.preventDefault();alert('Drag this button to your bookmarks bar!');">
                     Drag to Bookmarks (Desktop)
                 </a>
                 
@@ -638,11 +638,12 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v7.1</h2>
+        <h2>Change Log v7.5</h2>
         <ul>
-            <li><b>Layout Improved:</b> Smart Randomizer buttons moved below sliders for better visibility.</li>
-            <li><b>Tools Tab:</b> "True Black" button moved to Tools tab.</li>
-            <li><b>Features:</b> All v7.0 features (HSL, Harmonies, History) active.</li>
+            <li><b>Hiding Address Bar:</b> Added a script to auto-scroll page on load to simulate fullscreen.</li>
+            <li><b>Injector Re-Fix:</b> Removed auto-trigger events that were causing validation reverts. Now uses "Silent Injection" method.</li>
+            <li><b>Visual Update:</b> Injector now manually updates the Social Club color swatch for confirmation.</li>
+            <li><b>Layout:</b> Kept all v7.1 improvements (Randomizer location, Tools tab).</li>
         </ul>
     </div>
 </div>
@@ -723,6 +724,9 @@ let state = {
 
 /* --- INIT --- */
 (function(){
+    // AUTO SCROLL HACK
+    window.onload = function() { setTimeout(function() { window.scrollTo(0, 1); }, 100); };
+
     const data = localStorage.getItem(STORAGE_KEY);
     if(data) state.favs = JSON.parse(data);
     else {
@@ -937,7 +941,8 @@ function copyShareLink(){
 }
 
 function copyInjectorCode(){
-    const code = "javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){var i=document.getElementById('crewColor');if(i){i.value='#'+p.replace('#','');alert('Color Injected! Click Save.');}else{alert('Error: Input not found. Are you on the Edit Crew page?');}}})()";
+    // v7.4 SILENT INJECTION SCRIPT - Updates values without triggering events
+    const code = "javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){var hex='#'+p.replace('#','');var hidden=document.getElementById('crewColor');var visible=document.getElementById('createCrewFormColor');if(hidden){hidden.value=hex;}if(visible){visible.value=hex;}var swatch=document.querySelector('.minicolors-swatch-color');if(swatch){swatch.style.backgroundColor=hex;}alert('Color Injected! Click Save now.');}})()";
     navigator.clipboard.writeText(code).then(()=>toast("Script Copied!"));
 }
 
