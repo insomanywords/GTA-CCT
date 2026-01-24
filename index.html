@@ -253,6 +253,12 @@
     }
     
     /* Detail Modal Specifics */
+    .detail-swatch {
+        width: 100%; height: 80px; border-radius: 8px;
+        border: 1px solid #333; margin-bottom: 15px;
+        box-shadow: inset 0 0 15px #000;
+    }
+
     .detail-img-box {
         width: 100%; height: 200px; background: #222;
         border-radius: 8px; margin-bottom: 20px;
@@ -484,14 +490,12 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v5.6</h2>
+        <h2>Change Log v5.7</h2>
         <ul>
-            <li><b>UI Adjustment:</b> Moved Pearlescent dropdown above sliders to prevent scrolling issues on mobile.</li>
+            <li><b>UX Upgrade:</b> Modals now close when clicking the background overlay.</li>
+            <li><b>Library UX:</b> Color Details now include a large visual color swatch.</li>
+            <li><b>UI Adjustment:</b> Moved Pearlescent dropdown above sliders.</li>
             <li><b>Restored Pearls:</b> Added all 75+ GTA Pearlescent colors.</li>
-            <li><b>Library Fix:</b> Removed limit to show all colors.</li>
-            <li><b>Save UX:</b> Name and Manufacturer fields now blank by default.</li>
-            <li><b>Edit Feature:</b> Edit saved colors.</li>
-            <li><b>Safe Delete:</b> Confirmation modal added.</li>
         </ul>
     </div>
 </div>
@@ -499,6 +503,9 @@
 <div class="modal-overlay" id="detail-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('detail-modal')">✕</button>
+        
+        <div id="modal-swatch" class="detail-swatch"></div>
+
         <h2 id="modal-title" style="padding-right:30px;">Color Name</h2>
         
         <div class="detail-img-box" id="detail-img-box">
@@ -572,6 +579,13 @@ let state = {
     PEARLS.forEach(p=>{const o=document.createElement('option');o.value=p.h;o.textContent=p.n;pSelect.appendChild(o)});
     updateFromHex("#000000");
     
+    // Global click listener for modals
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.classList.remove('open');
+        }
+    };
+
     const s=document.createElement('script');
     s.src="https://docs.google.com/spreadsheets/d/1orhiEtiwe3uxTZKAG7ZosKKSKRzYihyU2DoBQe6aPcQ/gviz/tq?tqx=responseHandler:onSheetLoad&gid=0";
     s.onerror=()=>{useFallback("Connection Failed")};
@@ -708,6 +722,7 @@ function renderLibrary(){
 function openDetail(btn){
     const data = JSON.parse(btn.parentElement.dataset.json);
     
+    // Set text details
     document.getElementById('modal-title').innerText = data.name;
     document.getElementById('modal-manuf').innerText = data.man || "Custom";
     document.getElementById('modal-hex').innerText = data.hex;
@@ -716,6 +731,10 @@ function openDetail(btn){
     document.getElementById('modal-credit').innerText = data.credit || "User";
     document.getElementById('modal-notes').innerText = data.notes || "No notes";
     
+    // Set color swatch
+    document.getElementById('modal-swatch').style.backgroundColor = data.hex;
+
+    // Set Image
     const img = document.getElementById('modal-img');
     const ph = document.querySelector('.detail-placeholder');
     const box = document.getElementById('detail-img-box');
@@ -755,7 +774,6 @@ function openDetail(btn){
         
         editBtn.onclick = () => openEditModal();
         
-        // Setup confirm delete button once
         document.getElementById('confirm-delete-btn').onclick = () => {
             state.favs.splice(state.pendingActionIndex, 1);
             localStorage.setItem('gta_pwa_favs_v2', JSON.stringify(state.favs));
@@ -894,7 +912,6 @@ function renderSaved(){
                 <span class="meta-hex">${c.h}${c.e||""}</span>
             </div>`;
         
-        // Pass index and flag to allow deletion from modal
         const modalData = { 
             name: c.n, hex: c.h, end: c.e, notes: c.notes, 
             man: c.man, credit: "You", pearl: c.pearl, img: "",
