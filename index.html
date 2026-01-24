@@ -451,10 +451,14 @@
                 <h2>Utility Tools</h2>
                 
                 <h3>1. Social Club Injector</h3>
-                <p>Drag this button to your bookmarks bar. When on the Social Club Edit Crew page, click it to instantly unlock custom colors.</p>
+                <p style="margin-bottom:15px; font-size:0.85rem; color:#aaa;">Drag button to bookmarks (Desktop) or Copy code (Mobile).</p>
+                
                 <a href="javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){document.getElementById('crewColor').value='#'+p.replace('#','');alert('Color Injected! Click Save.');}})()" class="bookmark-btn" onclick="event.preventDefault();alert('Drag this button to your bookmarks bar!');">
-                    GTA Color Injector
+                    Drag to Bookmarks (Desktop)
                 </a>
+                
+                <button class="btn btn-sec" style="margin-top:10px;" onclick="copyInjectorCode()">Copy Code (Mobile)</button>
+                <p style="font-size:0.75rem; color:#666; margin-top:5px;">Mobile Instructions: Copy code, create a new bookmark, name it "Inject", paste code as URL.</p>
 
                 <h3 style="margin-top:25px;">2. Neon Generator</h3>
                 <p>Boosts the brightness of your current mix to "Modded/Neon" levels.</p>
@@ -548,11 +552,11 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v6.4</h2>
+        <h2>Change Log v6.5</h2>
         <ul>
+            <li><b>Tools Update:</b> Added dedicated copy button for Mobile Injector script.</li>
             <li><b>Critical Fixes:</b> Library modal crash fixed. Saved builds now load correctly in detail view.</li>
             <li><b>UI Update:</b> Copy Toast now displays the exact hex code copied.</li>
-            <li><b>Merged:</b> All advanced features (Tools, Share, Images) with stable core.</li>
         </ul>
     </div>
 </div>
@@ -707,6 +711,11 @@ function copyShareLink(){
     navigator.clipboard.writeText(url).then(()=>toast("Link Copied!"));
 }
 
+function copyInjectorCode(){
+    const code = "javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){document.getElementById('crewColor').value='#'+p.replace('#','');alert('Color Injected! Click Save.');}})()";
+    navigator.clipboard.writeText(code).then(()=>toast("Script Copied!"));
+}
+
 function makeNeon(){
     let {r,g,b} = state;
     const max = Math.max(r,g,b);
@@ -850,8 +859,11 @@ function openDetail(btn){
     document.getElementById('modal-title').innerText = data.name;
     document.getElementById('modal-manuf').innerText = data.man || "Custom";
     document.getElementById('modal-hex').innerText = data.hex;
+    
     // Fix: Handle both library 'end' and saved 'e' keys if needed, or stick to mapped key
-    document.getElementById('modal-end').innerText = data.end || ""; 
+    const endEl = document.getElementById('modal-end');
+    if(endEl) endEl.innerText = data.end || ""; 
+    
     document.getElementById('modal-pearl').innerText = data.pearl || "-";
     document.getElementById('modal-sec').innerText = data.sec || "-";
     document.getElementById('modal-wheel').innerText = data.wheel || "-";
