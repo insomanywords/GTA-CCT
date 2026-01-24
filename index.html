@@ -674,11 +674,11 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v8.6</h2>
+        <h2>Change Log v8.7</h2>
         <ul>
-            <li><b>Mobile Workflow:</b> Sliders now update a Mini Preview first. Tap Mini Preview to apply to Main Visualizer.</li>
-            <li><b>Desktop Workflow:</b> Remains side-by-side with instant updates.</li>
-            <li><b>Safety:</b> Copy/Save buttons always use the color currently displayed in the Main Visualizer.</li>
+            <li><b>Bug Fix:</b> Alpha Slider now visually updates the Live Preview swatch correctly.</li>
+            <li><b>UX Polish:</b> Toast message z-index fixed to appear above full screen overlay.</li>
+            <li><b>Mobile:</b> Sliders update Mini Preview; Tap Mini Preview to apply.</li>
         </ul>
     </div>
 </div>
@@ -860,7 +860,8 @@ function syncAll(updateInp=true){
 
     // Always update Input & Mini Preview
     if(updateInp) document.getElementById('hex-input').value = state.hex;
-    document.getElementById('mini-swatch').style.backgroundColor = state.hex;
+    // FIX: Apply alpha to mini swatch background
+    document.getElementById('mini-swatch').style.backgroundColor = state.hex + state.endCode;
     
     // v8.6: Only auto-update main visualizer on Desktop
     if (window.innerWidth >= 900) {
@@ -879,7 +880,7 @@ function applyPreview() {
     
     document.getElementById('disp-hex').innerText = displayed.hex + displayed.end;
     document.getElementById('disp-name').innerText = displayed.name;
-    document.getElementById('layer-base').style.backgroundColor = displayed.hex;
+    document.getElementById('layer-base').style.backgroundColor = displayed.hex + displayed.end;
     
     const safeCheck = document.getElementById('safe-check-indicator');
     if(state.r < 10 || state.g < 10 || state.b < 10) { 
