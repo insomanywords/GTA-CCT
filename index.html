@@ -79,22 +79,40 @@
         .mobile-header { display: none; }
     }
 
-    /* Mobile Bottom Bar */
+    /* Mobile Bottom Bar & Scrolling Fix */
     @media (max-width: 800px) {
-        #app { flex-direction: column; }
+        /* Enable Body Scroll for Address Bar Hiding */
+        body { 
+            height: auto; 
+            overflow-y: auto; 
+            min-height: 100vh; /* Ensure full height */
+            overscroll-behavior-y: none;
+        }
+        
+        #app { 
+            display: flex; 
+            flex-direction: column; 
+            height: auto; /* Let it grow */
+            overflow: visible; /* Remove internal scroll */
+        }
+
         .mobile-header {
             height: 60px; display: flex; align-items: center; justify-content: center;
             border-bottom: 1px solid var(--glass-border);
             background: var(--bg); font-weight: 800; color: var(--accent); 
             letter-spacing: 0.5px; flex-shrink: 0; font-size: 1.1rem; white-space: nowrap;
+            position: sticky; top: 0; z-index: 50; /* Stick header */
         }
+        
         .nav-container {
             position: fixed; bottom: 0; left: 0; width: 100%;
             height: calc(65px + var(--safe-bottom));
             padding-bottom: var(--safe-bottom);
             border-top: 1px solid var(--glass-border);
             display: flex; justify-content: space-around; align-items: center;
+            background: rgba(0,0,0,0.95); /* Opaque background */
         }
+        
         .nav-item {
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100%; color: var(--text-dim); gap: 4px;
@@ -103,15 +121,26 @@
         .nav-icon { font-size: 1.4rem; margin-bottom: 2px; }
         .nav-label { font-size: 0.7rem; font-weight: 600; }
         .nav-logo { display: none; }
+
+        /* Disable internal scrolling for content area on mobile */
+        .content-area {
+            flex: none; 
+            position: static; 
+            overflow: visible; 
+            padding: 20px; 
+            padding-bottom: 100px; /* Space for bottom nav */
+            height: auto;
+        }
     }
 
-    /* --- CONTENT AREA --- */
-    .content-area {
-        flex: 1; position: relative;
-        overflow-y: auto; overflow-x: hidden;
-        padding: 20px; scroll-behavior: smooth;
+    /* Desktop Content Area */
+    @media (min-width: 801px) {
+        .content-area {
+            flex: 1; position: relative;
+            overflow-y: auto; overflow-x: hidden;
+            padding: 20px; scroll-behavior: smooth;
+        }
     }
-    @media (max-width: 800px) { .content-area { padding-bottom: 100px; } }
 
     .page { display: none; animation: fadeIn 0.3s ease; max-width: 1000px; margin: 0 auto; }
     .page.active { display: block; }
@@ -518,7 +547,7 @@
                 <h3>1. Social Club Injector</h3>
                 <p style="margin-bottom:15px; font-size:0.85rem; color:#aaa;">Drag button to bookmarks (Desktop) or Copy code (Mobile).</p>
                 
-                <a href="javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){var hex='#'+p.replace('#','');var hidden=document.getElementById('crewColor');var visible=document.getElementById('createCrewFormColor');if(hidden){hidden.value=hex;}if(visible){visible.value=hex;visible.dispatchEvent(new Event('input',{bubbles:true}));visible.dispatchEvent(new Event('change',{bubbles:true}));visible.dispatchEvent(new Event('blur',{bubbles:true}));}if(hidden||visible){alert('Color Injected! Click Save.');}else{alert('Error: Input not found. Go to Edit Crew page.');}}})()" class="bookmark-btn" onclick="event.preventDefault();alert('Drag this button to your bookmarks bar!');">
+                <a href="javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){var hex='#'+p.replace('#','');var hidden=document.getElementById('crewColor');var visible=document.getElementById('createCrewFormColor');if(hidden){hidden.value=hex;}if(visible){visible.value=hex;}var swatch=document.querySelector('.minicolors-swatch-color');if(swatch){swatch.style.backgroundColor=hex;}alert('Color Injected! Click Save now.');}})()" class="bookmark-btn" onclick="event.preventDefault();alert('Drag this button to your bookmarks bar!');">
                     Drag to Bookmarks (Desktop)
                 </a>
                 
@@ -638,12 +667,11 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v7.5</h2>
+        <h2>Change Log v7.6</h2>
         <ul>
-            <li><b>Hiding Address Bar:</b> Added a script to auto-scroll page on load to simulate fullscreen.</li>
+            <li><b>Scrolling Fix:</b> Address bar now hides correctly on Mobile.</li>
             <li><b>Injector Re-Fix:</b> Removed auto-trigger events that were causing validation reverts. Now uses "Silent Injection" method.</li>
             <li><b>Visual Update:</b> Injector now manually updates the Social Club color swatch for confirmation.</li>
-            <li><b>Layout:</b> Kept all v7.1 improvements (Randomizer location, Tools tab).</li>
         </ul>
     </div>
 </div>
