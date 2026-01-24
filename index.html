@@ -134,6 +134,19 @@
             padding: 20px; scroll-behavior: smooth;
         }
     }
+    
+    /* --- SIDE BY SIDE EDITOR LAYOUT (Desktop Fix) --- */
+    @media (min-width: 900px) {
+        /* FIXED: Only apply grid when active to prevent overlap */
+        #page-editor.active {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        /* Hide mini-preview on desktop */
+        #mini-preview-container { display: none !important; }
+    }
 
     .page { display: none; animation: fadeIn 0.3s ease; max-width: 1000px; margin: 0 auto; }
     .page.active { display: block; }
@@ -158,6 +171,7 @@
         background: #111; border: 1px solid var(--surface-border);
         box-shadow: inset 0 0 40px #000;
         transition: 0.3s;
+        cursor: pointer; 
     }
     
     .car-layer { position: absolute; inset: 0; }
@@ -238,6 +252,20 @@
     .history-box { margin-top: 15px; padding-top: 15px; border-top: 1px solid #222; }
     .history-grid { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
     .hist-swatch { min-width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 1px solid #333; flex-shrink: 0; }
+    
+    /* Mini Preview for Mobile */
+    #mini-preview-container { margin-bottom: 20px; display: block; }
+    .mini-swatch { 
+        width: 100%; height: 50px; border-radius: 8px; 
+        background: #000; border: 1px solid #333; 
+        box-shadow: inset 0 0 10px #000; cursor: pointer;
+        position: relative;
+    }
+    .mini-swatch::after {
+        content: ''; position: absolute; inset: 0; 
+        background: linear-gradient(125deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+        pointer-events: none;
+    }
 
     /* Tools */
     .bookmark-btn { display: block; background: #333; color: #fff; padding: 15px; text-align: center; border-radius: 8px; text-decoration: none; border: 1px dashed #666; margin-top: 10px; font-weight: bold; cursor: grab; }
@@ -328,7 +356,7 @@
         width: 100%; height: 80px; border-radius: 8px; 
         border: 1px solid #333; margin-bottom: 15px; 
         box-shadow: inset 0 0 15px #000;
-        position: relative; overflow: hidden; /* Fix for overlay */
+        position: relative; overflow: hidden; cursor: pointer;
     }
     /* UPDATED: Add Gloss to Detail Swatch */
     .detail-swatch::after {
@@ -344,12 +372,18 @@
     .detail-label { color: var(--text-dim); }
     .detail-val { color: #fff; font-weight: bold; text-align: right; }
     
+    /* Full Screen Overlay */
+    #fs-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 9999; display: none; cursor: pointer;
+    }
+
     /* Toast */
     .toast {
         position: fixed; bottom: calc(80px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(20px);
         background: var(--accent); color: #000; padding: 12px 24px;
         border-radius: 50px; font-weight: bold; opacity: 0; pointer-events: none;
-        transition: 0.3s; z-index: 3000; box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-size: 0.9rem; width: max-content;
+        transition: 0.3s; z-index: 10000; /* FIXED: Above overlay */ box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-size: 0.9rem; width: max-content;
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     
@@ -361,6 +395,8 @@
 </style>
 </head>
 <body>
+
+<div id="fs-overlay" onclick="this.style.display='none'"></div>
 
 <div id="app">
     <div class="mobile-header">GTA CREW COLOR TOOL</div>
@@ -379,7 +415,7 @@
         
         <div id="page-editor" class="page active">
             <div class="card">
-                <div class="viz-box" id="visualizer-box">
+                <div class="viz-box" id="visualizer-box" onclick="openFullscreenEditor()">
                     <div id="layer-base" class="car-layer"></div>
                     <div id="layer-pearl" class="car-layer"></div>
                     <div class="viz-info">
@@ -419,6 +455,11 @@
                     </div>
                 </div>
 
+                <div id="mini-preview-container">
+                    <div class="slider-label"><span>Live Preview</span></div>
+                    <div id="mini-swatch" class="mini-swatch" onclick="document.getElementById('page-editor').scrollIntoView({behavior:'smooth'})"></div>
+                </div>
+
                 <div class="input-row">
                     <input type="text" id="hex-input" value="#000000" maxlength="9" oninput="updateFromHex(this.value)">
                     <button class="btn btn-sec btn-icon" onclick="document.getElementById('img-upload').click()">📷</button>
@@ -453,6 +494,11 @@
                         <div class="slider-label"><span>Lightness</span><span id="val-l">0%</span></div>
                         <input type="range" id="range-l" min="0" max="100" value="0" style="--thumb-color: #ffffff" oninput="updateFromHSL()">
                     </div>
+                </div>
+                
+                <div class="slider-wrap" style="margin-top:20px; border-top:1px solid #333; padding-top:15px;">
+                     <div class="slider-label"><span>Alpha (Transparency)</span><span id="val-a">255</span></div>
+                     <input type="range" id="range-a" min="0" max="255" value="255" style="--thumb-color: #aaa" oninput="updateAlpha()">
                 </div>
 
                 <div class="random-row">
@@ -628,13 +674,12 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v7.9</h2>
+        <h2>Change Log v8.5</h2>
         <ul>
-            <li><b>UI Update:</b> Added missing gloss overlay to Detail Modal swatch.</li>
-            <li><b>Visual Update:</b> Added "Glossy" overlay to library swatches.</li>
-            <li><b>UI Polish:</b> Card design updated to remove wasted empty space.</li>
-            <li><b>Scrolling Fix:</b> Address bar now hides correctly on Mobile.</li>
-            <li><b>Injector Fix:</b> Silent Injection method to bypass validation.</li>
+            <li><b>Layout Fix:</b> Fixed overlapping pages on desktop by refining grid layout rules.</li>
+            <li><b>Desktop Upgrade:</b> Side-by-side Editor layout for easier mixing.</li>
+            <li><b>Mobile Upgrade:</b> Mini Preview Swatch added above mixer sliders.</li>
+            <li><b>UX Polish:</b> "Tap to close" message visibility improved.</li>
         </ul>
     </div>
 </div>
@@ -643,7 +688,7 @@
     <div class="modal">
         <button class="close-modal" onclick="closeModal('detail-modal')">✕</button>
         
-        <div id="modal-swatch" class="detail-swatch"></div>
+        <div id="modal-swatch" class="detail-swatch" onclick="openFullscreenColor()"></div>
         <h2 id="modal-title" style="padding-right:30px;">Color Name</h2>
         
         <div class="detail-img-box" id="detail-img-box">
@@ -708,7 +753,7 @@ const PEARLS = [
 const FALLBACK_LIB=[{man:"Ferrari",name:"Rosso Corsa",hex:"#D40000",end:"",pearl:"-",img:"",credit:"Community",notes:"Standard Red"}];
 
 let state = {
-    r:0, g:0, b:0, h:0, s:0, l:0, hex:"#000000", endCode:"", name:"Black",
+    r:0, g:0, b:0, h:0, s:0, l:0, a:255, hex:"#000000", endCode:"", name:"Black",
     favs: [], library: [], filterCat:'All', filterText:'', pendingActionIndex: -1, loadedInfo: {},
     history: [], mixerMode: 'rgb'
 };
@@ -743,7 +788,7 @@ let state = {
     document.body.appendChild(s);
 })();
 
-/* --- CORE FUNCTIONS (RGB/HSL) --- */
+/* --- CORE FUNCTIONS (RGB/HSL/ALPHA) --- */
 function setMixerMode(mode){
     state.mixerMode = mode;
     document.getElementById('sliders-rgb').style.display = mode === 'rgb' ? 'block' : 'none';
@@ -760,9 +805,9 @@ function updateFromRGB(){
     
     const hex = "#" + ((1 << 24) + (state.r << 16) + (state.g << 8) + state.b).toString(16).slice(1).toUpperCase();
     state.hex = hex;
-    state.name = "Custom Mix"; state.endCode=""; state.loadedInfo={};
-    
-    syncAll();
+    state.name = "Custom Mix"; 
+    state.loadedInfo={};
+    updateEndCodeFromAlpha();
 }
 
 function updateFromHSL(){
@@ -775,8 +820,19 @@ function updateFromHSL(){
     
     const hex = "#" + ((1 << 24) + (state.r << 16) + (state.g << 8) + state.b).toString(16).slice(1).toUpperCase();
     state.hex = hex;
-    state.name = "Custom HSL"; state.endCode=""; state.loadedInfo={};
-    
+    state.name = "Custom HSL"; 
+    state.loadedInfo={};
+    updateEndCodeFromAlpha();
+}
+
+function updateAlpha(){
+    state.a = parseInt(document.getElementById('range-a').value);
+    updateEndCodeFromAlpha();
+}
+
+function updateEndCodeFromAlpha(){
+    if(state.a >= 255) state.endCode = "";
+    else state.endCode = state.a.toString(16).toUpperCase().padStart(2, '0');
     syncAll();
 }
 
@@ -787,7 +843,9 @@ function updateFromHex(val){
         state.r = parseInt(state.hex.slice(1,3),16);
         state.g = parseInt(state.hex.slice(3,5),16);
         state.b = parseInt(state.hex.slice(5,7),16);
-        state.name = "Custom Hex"; state.endCode="";
+        state.name = "Custom Hex"; 
+        // Reset Alpha on manual hex entry unless we parse 8 digit hex later
+        state.a = 255; state.endCode = "";
         syncAll(false);
     }
 }
@@ -802,8 +860,15 @@ function syncAll(updateInp=true){
     document.getElementById('range-s').value = Math.round(hsl[1]*100); document.getElementById('val-s').innerText = Math.round(hsl[1]*100) + '%';
     document.getElementById('range-l').value = Math.round(hsl[2]*100); document.getElementById('val-l').innerText = Math.round(hsl[2]*100) + '%';
 
+    // Alpha Sync
+    document.getElementById('range-a').value = state.a;
+    document.getElementById('val-a').innerText = state.a;
+
+    // Mini Preview Sync
+    document.getElementById('mini-swatch').style.backgroundColor = state.hex;
+
     if(updateInp) document.getElementById('hex-input').value = state.hex;
-    document.getElementById('disp-hex').innerText = state.hex + (state.endCode ? state.endCode : "");
+    document.getElementById('disp-hex').innerText = state.hex + state.endCode;
     document.getElementById('disp-name').innerText = state.name;
     document.getElementById('layer-base').style.backgroundColor = state.hex;
     
@@ -871,7 +936,7 @@ function smartRandom(type) {
     
     state.hex = hex;
     state.name = type.charAt(0).toUpperCase() + type.slice(1) + " Random";
-    state.endCode = "";
+    state.a = 255; state.endCode = "";
     syncAll();
 }
 
@@ -1035,6 +1100,22 @@ function saveEdit() {
     toast("Updated!");
 }
 
+/* --- FULLSCREEN --- */
+function openFullscreenColor(source) {
+    const overlay = document.getElementById('fs-overlay');
+    if(source === 'editor') {
+        overlay.style.backgroundColor = state.hex + (state.endCode || "");
+    } else {
+        overlay.style.backgroundColor = document.getElementById('modal-swatch').style.backgroundColor;
+    }
+    overlay.style.display = 'block';
+    toast("Tap anywhere to close"); // Added Toast Message
+}
+
+function openFullscreenEditor() {
+    openFullscreenColor('editor');
+}
+
 /* --- LIBRARY & DETAILS --- */
 window.onSheetLoad = function(json) {
     try {
@@ -1146,6 +1227,12 @@ function loadColor(hex, name, end, info){
     updateFromHex(hex);
     state.name = name;
     state.endCode = end || "";
+    // If end code exists, try to update alpha slider
+    if(state.endCode) {
+        state.a = parseInt(state.endCode, 16);
+    } else {
+        state.a = 255;
+    }
     state.loadedInfo = info || {};
     syncAll();
     nav('editor', document.querySelectorAll('.nav-item')[0]);
