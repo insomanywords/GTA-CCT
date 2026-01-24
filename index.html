@@ -453,12 +453,19 @@
                 <h3>1. Social Club Injector</h3>
                 <p style="margin-bottom:15px; font-size:0.85rem; color:#aaa;">Drag button to bookmarks (Desktop) or Copy code (Mobile).</p>
                 
-                <a href="javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){document.getElementById('crewColor').value='#'+p.replace('#','');alert('Color Injected! Click Save.');}})()" class="bookmark-btn" onclick="event.preventDefault();alert('Drag this button to your bookmarks bar!');">
+                <a href="javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){var i=document.getElementById('crewColor');if(i){i.value='#'+p.replace('#','');alert('Color Injected! Click Save.');}else{alert('Error: Input not found. Are you on the Edit Crew page?');}}})()" class="bookmark-btn" onclick="event.preventDefault();alert('Drag this button to your bookmarks bar!');">
                     Drag to Bookmarks (Desktop)
                 </a>
                 
                 <button class="btn btn-sec" style="margin-top:10px;" onclick="copyInjectorCode()">Copy Code (Mobile)</button>
-                <p style="font-size:0.75rem; color:#666; margin-top:5px;">Mobile Instructions: Copy code, create a new bookmark, name it "Inject", paste code as URL.</p>
+                <p style="font-size:0.8rem; color:#888; margin-top:10px; line-height:1.5;">
+                    <b>Mobile Instructions (Android/Chrome):</b><br>
+                    1. Tap "Copy Code".<br>
+                    2. Bookmark this page, then Edit the bookmark.<br>
+                    3. Rename it to <b>"Inject"</b> and paste the code into the URL field.<br>
+                    4. Go to Social Club "Edit Crew" page.<br>
+                    5. Tap the address bar, type <b>"Inject"</b>, and tap the bookmark (star icon) that appears in suggestions.
+                </p>
 
                 <h3 style="margin-top:25px;">2. Neon Generator</h3>
                 <p>Boosts the brightness of your current mix to "Modded/Neon" levels.</p>
@@ -552,10 +559,10 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v6.5</h2>
+        <h2>Change Log v6.6</h2>
         <ul>
-            <li><b>Tools Update:</b> Added dedicated copy button for Mobile Injector script.</li>
-            <li><b>Critical Fixes:</b> Library modal crash fixed. Saved builds now load correctly in detail view.</li>
+            <li><b>Tools Update:</b> Improved instructions for Android Bookmarklet injection.</li>
+            <li><b>Script Update:</b> Injector script now includes error handling for safer use.</li>
             <li><b>UI Update:</b> Copy Toast now displays the exact hex code copied.</li>
         </ul>
     </div>
@@ -712,7 +719,8 @@ function copyShareLink(){
 }
 
 function copyInjectorCode(){
-    const code = "javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){document.getElementById('crewColor').value='#'+p.replace('#','');alert('Color Injected! Click Save.');}})()";
+    // Revised script with error handling for input existence
+    const code = "javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){var i=document.getElementById('crewColor');if(i){i.value='#'+p.replace('#','');alert('Color Injected! Click Save.');}else{alert('Error: Input not found. Are you on the Edit Crew page?');}}})()";
     navigator.clipboard.writeText(code).then(()=>toast("Script Copied!"));
 }
 
@@ -860,7 +868,6 @@ function openDetail(btn){
     document.getElementById('modal-manuf').innerText = data.man || "Custom";
     document.getElementById('modal-hex').innerText = data.hex;
     
-    // Fix: Handle both library 'end' and saved 'e' keys if needed, or stick to mapped key
     const endEl = document.getElementById('modal-end');
     if(endEl) endEl.innerText = data.end || ""; 
     
