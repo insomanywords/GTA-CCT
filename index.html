@@ -162,38 +162,70 @@
     p, li { font-size: 0.9rem; color: #ccc; line-height: 1.6; }
     ul { padding-left: 20px; margin-bottom: 10px; }
 
-    /* --- REALISTIC GTA VISUALIZER --- */
+    /* --- REALISTIC GTA VISUALIZER & FULL SCREEN SHARED STYLES --- */
+    .viz-box, #fs-overlay {
+        position: relative; overflow: hidden;
+        background: #111; 
+        transition: 0.3s;
+    }
+
     .viz-box {
         width: 100%; height: 220px; border-radius: 12px;
-        position: relative; overflow: hidden;
-        background: #111; border: 1px solid var(--surface-border);
+        border: 1px solid var(--surface-border);
         box-shadow: inset 0 0 40px #000;
-        transition: 0.3s;
-        cursor: pointer; 
+        cursor: pointer;
     }
-    
+
+    /* Common Layers */
     .car-layer { position: absolute; inset: 0; }
-    #layer-base { z-index: 2; transition: background 0.1s; }
-    #layer-pearl { 
-        z-index: 3; mix-blend-mode: screen; opacity: 0.6; 
+    
+    /* Base Paint (Crew Color) */
+    #layer-base, #fs-base { z-index: 2; transition: background 0.1s; }
+
+    /* Pearlescent Layer */
+    #layer-pearl, #fs-pearl { 
+        z-index: 3; 
+        mix-blend-mode: screen; 
+        opacity: 0.6; 
         background: radial-gradient(circle at 40% 30%, var(--pearl, transparent) 0%, transparent 65%);
     }
-    .viz-box::after {
+
+    /* Standard Gloss Reflection (Lighting) */
+    .viz-box::after, #fs-overlay::after {
         content: ''; position: absolute; inset: 0; z-index: 4; pointer-events: none;
         background: linear-gradient(125deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.3) 100%);
     }
 
-    /* Textures */
-    .texture-matte #layer-pearl { display: none; }
-    .texture-matte::after { display: none; } 
-    .texture-matte #layer-base { filter: contrast(1.1) brightness(0.95); }
-    .texture-metal #layer-base { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, transparent 1px, transparent 3px); background-blend-mode: overlay; }
-    .texture-metal::after { background: linear-gradient(125deg, rgba(255,255,255,0.4) 0%, transparent 45%, rgba(0,0,0,0.5) 100%); }
-    .texture-chrome { background: #000; }
-    .texture-chrome::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(to bottom, #bfbfbf 0%, #e6e6e6 48%, #444 50%, #666 100%); }
-    .texture-chrome #layer-base { opacity: 0.65; mix-blend-mode: multiply; }
-    .texture-chrome::after { background: linear-gradient(125deg, rgba(255,255,255,0.7) 0%, transparent 35%); }
+    /* === TEXTURE VARIANTS (Applied to both Box and Overlay) === */
+    
+    /* Matte - Removed display:none for pearl to allow glitch simulation */
+    .texture-matte #layer-base, .texture-matte #fs-base { filter: contrast(1.1) brightness(0.95); }
+    .texture-matte::after { display: none; } /* Hide Gloss on Matte */
 
+    /* Metal */
+    .texture-metal #layer-base, .texture-metal #fs-base { 
+        background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, transparent 1px, transparent 3px);
+        background-blend-mode: overlay;
+    }
+    .texture-metal::after {
+        background: linear-gradient(125deg, rgba(255,255,255,0.4) 0%, transparent 45%, rgba(0,0,0,0.5) 100%);
+    }
+
+    /* Chrome */
+    .texture-chrome { background: #000; }
+    .texture-chrome::before {
+        content: ''; position: absolute; inset: 0; z-index: 1;
+        background: linear-gradient(to bottom, #bfbfbf 0%, #e6e6e6 48%, #444 50%, #666 100%);
+    }
+    .texture-chrome #layer-base, .texture-chrome #fs-base {
+        opacity: 0.65; 
+        mix-blend-mode: multiply; 
+    }
+    .texture-chrome::after {
+        background: linear-gradient(125deg, rgba(255,255,255,0.7) 0%, transparent 35%);
+    }
+
+    /* Info Overlay */
     .viz-info {
         position: absolute; bottom: 15px; left: 15px; z-index: 10;
         background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
@@ -396,7 +428,10 @@
 </head>
 <body>
 
-<div id="fs-overlay" onclick="this.style.display='none'"></div>
+<div id="fs-overlay" onclick="this.style.display='none'">
+    <div id="fs-base" class="car-layer"></div>
+    <div id="fs-pearl" class="car-layer"></div>
+</div>
 
 <div id="app">
     <div class="mobile-header">GTA CREW COLOR TOOL</div>
@@ -674,11 +709,11 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v8.7</h2>
+        <h2>Change Log v8.8</h2>
         <ul>
-            <li><b>Bug Fix:</b> Alpha Slider now visually updates the Live Preview swatch correctly.</li>
-            <li><b>UX Polish:</b> Toast message z-index fixed to appear above full screen overlay.</li>
-            <li><b>Mobile:</b> Sliders update Mini Preview; Tap Mini Preview to apply.</li>
+            <li><b>Bug Fix (Texture):</b> Matte texture no longer forces Pearl off, allowing "Matte Pearl" glitch preview.</li>
+            <li><b>Bug Fix (Fullscreen):</b> Full Screen Overlay now supports Texture and Pearl layers.</li>
+            <li><b>Bug Fix (Alpha):</b> Alpha slider correctly updates preview swatches.</li>
         </ul>
     </div>
 </div>
@@ -1102,11 +1137,24 @@ function saveEdit() {
 /* --- FULLSCREEN --- */
 function openFullscreenColor(source) {
     const overlay = document.getElementById('fs-overlay');
+    
+    // v8.8: APPLY TEXTURE AND PEARL TO OVERLAY
+    const textureClass = document.getElementById('visualizer-box').className.replace('viz-box', '').trim();
+    overlay.className = textureClass; // Applies texture-matte, texture-metal, etc.
+    
+    // Update Pearl layer color
+    const pearlColor = document.getElementById('pearl-select').value;
+    document.getElementById('fs-pearl').style.setProperty('--pearl', pearlColor);
+
     if(source === 'editor') {
-        overlay.style.backgroundColor = displayed.hex + (displayed.end || "");
+        document.getElementById('fs-base').style.backgroundColor = displayed.hex + (displayed.end || "");
     } else {
-        overlay.style.backgroundColor = document.getElementById('modal-swatch').style.backgroundColor;
+        // From Library Detail
+        document.getElementById('fs-base').style.backgroundColor = document.getElementById('modal-swatch').style.backgroundColor;
+        // Reset texture for library view (optional, or keep last selected)
+        overlay.className = ""; 
     }
+    
     overlay.style.display = 'block';
     toast("Tap anywhere to close");
 }
