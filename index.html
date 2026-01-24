@@ -137,14 +137,12 @@
     
     /* --- SIDE BY SIDE EDITOR LAYOUT (Desktop Fix) --- */
     @media (min-width: 900px) {
-        /* FIXED: Only apply grid when active to prevent overlap */
         #page-editor.active {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             align-items: start;
         }
-        /* Hide mini-preview on desktop */
         #mini-preview-container { display: none !important; }
     }
 
@@ -256,15 +254,18 @@
     /* Mini Preview for Mobile */
     #mini-preview-container { margin-bottom: 20px; display: block; }
     .mini-swatch { 
-        width: 100%; height: 50px; border-radius: 8px; 
+        width: 100%; height: 60px; border-radius: 8px; 
         background: #000; border: 1px solid #333; 
         box-shadow: inset 0 0 10px #000; cursor: pointer;
         position: relative;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.8);
     }
     .mini-swatch::after {
         content: ''; position: absolute; inset: 0; 
         background: linear-gradient(125deg, rgba(255,255,255,0.15) 0%, transparent 60%);
-        pointer-events: none;
+        pointer-events: none; border-radius: 8px;
     }
 
     /* Tools */
@@ -358,7 +359,6 @@
         box-shadow: inset 0 0 15px #000;
         position: relative; overflow: hidden; cursor: pointer;
     }
-    /* UPDATED: Add Gloss to Detail Swatch */
     .detail-swatch::after {
         content: ''; position: absolute; inset: 0; 
         background: linear-gradient(125deg, rgba(255,255,255,0.15) 0%, transparent 60%);
@@ -383,7 +383,7 @@
         position: fixed; bottom: calc(80px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(20px);
         background: var(--accent); color: #000; padding: 12px 24px;
         border-radius: 50px; font-weight: bold; opacity: 0; pointer-events: none;
-        transition: 0.3s; z-index: 10000; /* FIXED: Above overlay */ box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-size: 0.9rem; width: max-content;
+        transition: 0.3s; z-index: 10000; box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-size: 0.9rem; width: max-content;
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     
@@ -456,8 +456,8 @@
                 </div>
 
                 <div id="mini-preview-container">
-                    <div class="slider-label"><span>Live Preview</span></div>
-                    <div id="mini-swatch" class="mini-swatch" onclick="document.getElementById('page-editor').scrollIntoView({behavior:'smooth'})"></div>
+                    <div class="slider-label"><span>Live Preview (Tap to Apply)</span></div>
+                    <div id="mini-swatch" class="mini-swatch" onclick="applyPreview()">TAP TO APPLY</div>
                 </div>
 
                 <div class="input-row">
@@ -674,12 +674,11 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v8.5</h2>
+        <h2>Change Log v8.6</h2>
         <ul>
-            <li><b>Layout Fix:</b> Fixed overlapping pages on desktop by refining grid layout rules.</li>
-            <li><b>Desktop Upgrade:</b> Side-by-side Editor layout for easier mixing.</li>
-            <li><b>Mobile Upgrade:</b> Mini Preview Swatch added above mixer sliders.</li>
-            <li><b>UX Polish:</b> "Tap to close" message visibility improved.</li>
+            <li><b>Mobile Workflow:</b> Sliders now update a Mini Preview first. Tap Mini Preview to apply to Main Visualizer.</li>
+            <li><b>Desktop Workflow:</b> Remains side-by-side with instant updates.</li>
+            <li><b>Safety:</b> Copy/Save buttons always use the color currently displayed in the Main Visualizer.</li>
         </ul>
     </div>
 </div>
@@ -752,15 +751,18 @@ const PEARLS = [
 
 const FALLBACK_LIB=[{man:"Ferrari",name:"Rosso Corsa",hex:"#D40000",end:"",pearl:"-",img:"",credit:"Community",notes:"Standard Red"}];
 
+// v8.6 State Separation
 let state = {
     r:0, g:0, b:0, h:0, s:0, l:0, a:255, hex:"#000000", endCode:"", name:"Black",
     favs: [], library: [], filterCat:'All', filterText:'', pendingActionIndex: -1, loadedInfo: {},
     history: [], mixerMode: 'rgb'
 };
 
+// "Committed" State for Main Visualizer & Buttons
+let displayed = { hex: "#000000", end: "", name: "Black" };
+
 /* --- INIT --- */
 (function(){
-    // AUTO SCROLL HACK
     window.onload = function() { setTimeout(function() { window.scrollTo(0, 1); }, 100); };
 
     const data = localStorage.getItem(STORAGE_KEY);
@@ -802,11 +804,9 @@ function updateFromRGB(){
     state.r = parseInt(document.getElementById('range-r').value);
     state.g = parseInt(document.getElementById('range-g').value);
     state.b = parseInt(document.getElementById('range-b').value);
-    
     const hex = "#" + ((1 << 24) + (state.r << 16) + (state.g << 8) + state.b).toString(16).slice(1).toUpperCase();
     state.hex = hex;
     state.name = "Custom Mix"; 
-    state.loadedInfo={};
     updateEndCodeFromAlpha();
 }
 
@@ -814,14 +814,11 @@ function updateFromHSL(){
     const h = parseInt(document.getElementById('range-h').value);
     const s = parseInt(document.getElementById('range-s').value);
     const l = parseInt(document.getElementById('range-l').value);
-    
     const rgb = hslToRgb(h/360, s/100, l/100);
     state.r = rgb[0]; state.g = rgb[1]; state.b = rgb[2];
-    
     const hex = "#" + ((1 << 24) + (state.r << 16) + (state.g << 8) + state.b).toString(16).slice(1).toUpperCase();
     state.hex = hex;
     state.name = "Custom HSL"; 
-    state.loadedInfo={};
     updateEndCodeFromAlpha();
 }
 
@@ -844,13 +841,13 @@ function updateFromHex(val){
         state.g = parseInt(state.hex.slice(3,5),16);
         state.b = parseInt(state.hex.slice(5,7),16);
         state.name = "Custom Hex"; 
-        // Reset Alpha on manual hex entry unless we parse 8 digit hex later
         state.a = 255; state.endCode = "";
         syncAll(false);
     }
 }
 
 function syncAll(updateInp=true){
+    // Update Slider UI
     document.getElementById('range-r').value = state.r; document.getElementById('val-r').innerText = state.r;
     document.getElementById('range-g').value = state.g; document.getElementById('val-g').innerText = state.g;
     document.getElementById('range-b').value = state.b; document.getElementById('val-b').innerText = state.b;
@@ -859,18 +856,30 @@ function syncAll(updateInp=true){
     document.getElementById('range-h').value = Math.round(hsl[0]*360); document.getElementById('val-h').innerText = Math.round(hsl[0]*360);
     document.getElementById('range-s').value = Math.round(hsl[1]*100); document.getElementById('val-s').innerText = Math.round(hsl[1]*100) + '%';
     document.getElementById('range-l').value = Math.round(hsl[2]*100); document.getElementById('val-l').innerText = Math.round(hsl[2]*100) + '%';
+    document.getElementById('range-a').value = state.a; document.getElementById('val-a').innerText = state.a;
 
-    // Alpha Sync
-    document.getElementById('range-a').value = state.a;
-    document.getElementById('val-a').innerText = state.a;
-
-    // Mini Preview Sync
-    document.getElementById('mini-swatch').style.backgroundColor = state.hex;
-
+    // Always update Input & Mini Preview
     if(updateInp) document.getElementById('hex-input').value = state.hex;
-    document.getElementById('disp-hex').innerText = state.hex + state.endCode;
-    document.getElementById('disp-name').innerText = state.name;
-    document.getElementById('layer-base').style.backgroundColor = state.hex;
+    document.getElementById('mini-swatch').style.backgroundColor = state.hex;
+    
+    // v8.6: Only auto-update main visualizer on Desktop
+    if (window.innerWidth >= 900) {
+        applyPreview();
+    }
+
+    renderHarmonies();
+    addToHistory(state.hex);
+}
+
+// v8.6: Commit draft state to main visualizer
+function applyPreview() {
+    displayed.hex = state.hex;
+    displayed.end = state.endCode;
+    displayed.name = state.name;
+    
+    document.getElementById('disp-hex').innerText = displayed.hex + displayed.end;
+    document.getElementById('disp-name').innerText = displayed.name;
+    document.getElementById('layer-base').style.backgroundColor = displayed.hex;
     
     const safeCheck = document.getElementById('safe-check-indicator');
     if(state.r < 10 || state.g < 10 || state.b < 10) { 
@@ -878,9 +887,6 @@ function syncAll(updateInp=true){
     } else {
         safeCheck.innerHTML = '✅ Safe Color'; safeCheck.classList.remove('unsafe');
     }
-
-    renderHarmonies();
-    addToHistory(state.hex);
 }
 
 /* --- MATH UTILS --- */
@@ -933,7 +939,6 @@ function smartRandom(type) {
     const rgb = hslToRgb(h, s, l);
     state.r = rgb[0]; state.g = rgb[1]; state.b = rgb[2];
     const hex = "#" + ((1 << 24) + (state.r << 16) + (state.g << 8) + state.b).toString(16).slice(1).toUpperCase();
-    
     state.hex = hex;
     state.name = type.charAt(0).toUpperCase() + type.slice(1) + " Random";
     state.a = 255; state.endCode = "";
@@ -943,15 +948,7 @@ function smartRandom(type) {
 function renderHarmonies() {
     const hsl = rgbToHsl(state.r, state.g, state.b);
     const h = hsl[0], s = hsl[1], l = hsl[2];
-    
-    const shifts = [
-        {n: "Compl.", h: (h + 0.5) % 1},
-        {n: "Analog.", h: (h + 0.083) % 1},
-        {n: "Analog.", h: (h - 0.083 + 1) % 1},
-        {n: "Triad", h: (h + 0.33) % 1},
-        {n: "Triad", h: (h + 0.66) % 1}
-    ];
-    
+    const shifts = [{n: "Compl.", h: (h + 0.5) % 1}, {n: "Analog.", h: (h + 0.083) % 1}, {n: "Analog.", h: (h - 0.083 + 1) % 1}, {n: "Triad", h: (h + 0.33) % 1}, {n: "Triad", h: (h + 0.66) % 1}];
     const grid = document.getElementById('harmony-grid');
     grid.innerHTML = "";
     shifts.forEach(shift => {
@@ -970,7 +967,6 @@ function addToHistory(hex) {
     if(state.history.length > 0 && state.history[0] === hex) return;
     state.history.unshift(hex);
     if(state.history.length > 10) state.history.pop();
-    
     const grid = document.getElementById('history-grid');
     grid.innerHTML = "";
     state.history.forEach(h => {
@@ -992,12 +988,13 @@ function updatePearl(){ document.documentElement.style.setProperty('--pearl',doc
 
 /* --- OTHER FEATURES --- */
 function copyShareLink(){
-    const url = `${window.location.origin}${window.location.pathname}?hex=${state.hex.replace('#','')}&name=${encodeURIComponent(state.name)}`;
+    // Uses DISPLAYED state (Main Box)
+    const url = `${window.location.origin}${window.location.pathname}?hex=${displayed.hex.replace('#','')}&name=${encodeURIComponent(displayed.name)}`;
     navigator.clipboard.writeText(url).then(()=>toast("Link Copied!"));
 }
 
 function copyInjectorCode(){
-    // v7.4 SILENT INJECTION SCRIPT - Updates values without triggering events
+    // v7.4 SILENT INJECTION SCRIPT
     const code = "javascript:(function(){var p=prompt('Enter Hex (e.g. FF0000):');if(p){var hex='#'+p.replace('#','');var hidden=document.getElementById('crewColor');var visible=document.getElementById('createCrewFormColor');if(hidden){hidden.value=hex;}if(visible){visible.value=hex;}var swatch=document.querySelector('.minicolors-swatch-color');if(swatch){swatch.style.backgroundColor=hex;}alert('Color Injected! Click Save now.');}})()";
     navigator.clipboard.writeText(code).then(()=>toast("Script Copied!"));
 }
@@ -1010,7 +1007,6 @@ function makeNeon(){
     g = (g === max) ? 255 : 0;
     b = (b === max) ? 255 : 0;
     if(state.r===state.g && state.g===state.b) { r=255; g=255; b=255; }
-    
     document.getElementById('range-r').value = r;
     document.getElementById('range-g').value = g;
     document.getElementById('range-b').value = b;
@@ -1044,9 +1040,10 @@ function handleImageUpload(input) {
 /* --- SAVE & BUILD SYSTEM --- */
 function openSaveModal() {
     const info = state.loadedInfo || {};
-    document.getElementById('save-name-input').value = state.name || "";
+    // Uses DISPLAYED state
+    document.getElementById('save-name-input').value = displayed.name || "";
     document.getElementById('save-manuf-input').value = info.man || "";
-    document.getElementById('save-end-input').value = state.endCode || info.end || "";
+    document.getElementById('save-end-input').value = displayed.end || info.end || "";
     document.getElementById('save-pearl-input').value = info.pearl || "";
     document.getElementById('save-sec-input').value = info.sec || "";
     document.getElementById('save-wheel-input').value = info.wheel || "";
@@ -1055,9 +1052,10 @@ function openSaveModal() {
 }
 
 function confirmSave() {
+    // Uses DISPLAYED state
     state.favs.push({
-        h: state.hex, 
-        n: document.getElementById('save-name-input').value || state.name,
+        h: displayed.hex, 
+        n: document.getElementById('save-name-input').value || displayed.name,
         man: document.getElementById('save-manuf-input').value || "Custom",
         e: document.getElementById('save-end-input').value,
         pearl: document.getElementById('save-pearl-input').value,
@@ -1104,12 +1102,12 @@ function saveEdit() {
 function openFullscreenColor(source) {
     const overlay = document.getElementById('fs-overlay');
     if(source === 'editor') {
-        overlay.style.backgroundColor = state.hex + (state.endCode || "");
+        overlay.style.backgroundColor = displayed.hex + (displayed.end || "");
     } else {
         overlay.style.backgroundColor = document.getElementById('modal-swatch').style.backgroundColor;
     }
     overlay.style.display = 'block';
-    toast("Tap anywhere to close"); // Added Toast Message
+    toast("Tap anywhere to close");
 }
 
 function openFullscreenEditor() {
@@ -1235,6 +1233,10 @@ function loadColor(hex, name, end, info){
     }
     state.loadedInfo = info || {};
     syncAll();
+    
+    // Explicitly update main visualizer when loading a preset color
+    applyPreview();
+    
     nav('editor', document.querySelectorAll('.nav-item')[0]);
 }
 
@@ -1247,7 +1249,7 @@ function nav(id, el){
     if(id==='library') renderLibrary();
     if(id==='saved') renderSaved();
 }
-function copyHex(){ const code = state.hex+(state.endCode||""); navigator.clipboard.writeText(code).then(()=>toast("Copied: " + code)); }
+function copyHex(){ const code = displayed.hex+(displayed.end||""); navigator.clipboard.writeText(code).then(()=>toast("Copied: " + code)); }
 function copyTrueBlack(){ navigator.clipboard.writeText("#000000AA").then(()=>toast("Copied: #000000AA")); }
 function toast(msg){ const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
