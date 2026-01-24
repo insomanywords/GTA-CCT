@@ -196,13 +196,10 @@
         background: linear-gradient(125deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.3) 100%);
     }
 
-    /* === TEXTURE VARIANTS (Applied to both Box and Overlay) === */
-    
-    /* Matte - Removed display:none for pearl to allow glitch simulation */
+    /* === TEXTURE VARIANTS === */
     .texture-matte #layer-base, .texture-matte #fs-base { filter: contrast(1.1) brightness(0.95); }
-    .texture-matte::after { display: none; } /* Hide Gloss on Matte */
+    .texture-matte::after { display: none; } 
 
-    /* Metal */
     .texture-metal #layer-base, .texture-metal #fs-base { 
         background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, transparent 1px, transparent 3px);
         background-blend-mode: overlay;
@@ -211,7 +208,6 @@
         background: linear-gradient(125deg, rgba(255,255,255,0.4) 0%, transparent 45%, rgba(0,0,0,0.5) 100%);
     }
 
-    /* Chrome */
     .texture-chrome { background: #000; }
     .texture-chrome::before {
         content: ''; position: absolute; inset: 0; z-index: 1;
@@ -574,11 +570,64 @@
         <div id="page-guides" class="page">
             <div class="card">
                 <h2>Glitches & Guides</h2>
-                <div class="guide-item"><div class="guide-header" onclick="toggleGuide(this)">1. How to Apply Crew Colors <span>▼</span></div><div class="guide-content">1. Go to Rockstar Social Club -> Edit Crew.<br>2. Right-click the color box -> Inspect Element.<br>3. Find the value ending in <code>#......</code>.<br>4. Paste your Hex. If "Not Supported", add <code>00</code> or <code>AA</code> to the end.<br>5. Save Crew and restart game.</div></div>
-                <div class="guide-item"><div class="guide-header" onclick="toggleGuide(this)">2. Matte + Pearl Glitch <span>▼</span></div><div class="guide-content">1. Go to LSC. Apply Matte color.<br>2. Go to Metallic, scroll 3s.<br>3. Back out, buy Plate.<br>4. Go back to Respray > Pearlescent.</div></div>
-                <div class="guide-item"><div class="guide-header" onclick="toggleGuide(this)">3. Pure Black Smoke <span>▼</span></div><div class="guide-content">1. Set Crew Color to <code>#000000AA</code>.<br>2. Buy Patriot Tire Smoke.<br>3. Change Smoke to Crew Smoke.</div></div>
-                <div class="guide-item"><div class="guide-header" onclick="toggleGuide(this)">4. Instant Update <span>▼</span></div><div class="guide-content">1. Save color on Social Club.<br>2. Switch from Online to Story Mode.<br>3. Return to Invite Only Session.<br>4. Color is now updated in LSC.</div></div>
-                <div class="guide-item"><div class="guide-header" onclick="toggleGuide(this)">5. Secret Gold <span>▼</span></div><div class="guide-content">Use Hex <code>#B58A40</code> over Brushed Gold or Pure Gold metals for a hidden texture.</div></div>
+                
+                <div class="guide-item">
+                    <div class="guide-header" onclick="toggleGuide(this)">1. Matte + Pearl Glitch <span>▼</span></div>
+                    <div class="guide-content">
+                        <b>Effect:</b> Apply Pearlescent over Matte paint.<br><br>
+                        1. Go to LSC > Respray > Primary > Matte.<br>
+                        2. Buy any Matte color.<br>
+                        3. Go to Metallic, scroll through list for 3-5 seconds (don't buy).<br>
+                        4. Back out, go to Plates (or Wheels), change something.<br>
+                        5. Go back to Respray > Primary > Pearlescent.<br>
+                        6. You can now select a pearl!
+                    </div>
+                </div>
+                
+                <div class="guide-item">
+                    <div class="guide-header" onclick="toggleGuide(this)">2. Patriot Tire Smoke / True Black <span>▼</span></div>
+                    <div class="guide-content">
+                        <b>Effect:</b> Unlocks rare Patriot Smoke & "Super Black" paint.<br><br>
+                        1. Use this tool's "Tools" tab > "Copy #000000AA".<br>
+                        2. Go to Social Club Edit Crew page.<br>
+                        3. Use the Injector script from the Tools tab.<br>
+                        4. Save Crew & Restart Game.<br>
+                        5. In LSC, set Crew Color (Paint) & Crew Smoke (Tires).
+                    </div>
+                </div>
+                
+                <div class="guide-item">
+                    <div class="guide-header" onclick="toggleGuide(this)">3. Colored Chrome / "4D" Paint <span>▼</span></div>
+                    <div class="guide-content">
+                        <b>Effect:</b> Shiny Chrome with a color tint.<br><br>
+                        1. Go to LSC > Respray > Primary > Chrome.<br>
+                        2. Apply Chrome.<br>
+                        3. Apply Crew Color immediately after.<br>
+                        <i>Note: This preserves the chrome reflection under the color.</i>
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-header" onclick="toggleGuide(this)">4. Secret Gold Paint <span>▼</span></div>
+                    <div class="guide-content">
+                        <b>Method 1 (Pure):</b><br>
+                        Metals > Pure Gold > Apply Crew Color (Yellow/Orange tint).<br><br>
+                        <b>Method 2 (LSC):</b><br>
+                        Metallic > Bronze > Pearlescent > Race Yellow.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-header" onclick="toggleGuide(this)">5. Chameleon + Pearl (Next Gen) <span>▼</span></div>
+                    <div class="guide-content">
+                        <b>Effect:</b> 3-tone paint job.<br><br>
+                        1. Apply any Chameleon paint.<br>
+                        2. Do the "Matte/Metallic Scroll" glitch (Step 3 in Guide #1).<br>
+                        3. Change Plate.<br>
+                        4. Go to Pearlescent and apply any pearl over the Chameleon.
+                    </div>
+                </div>
+
             </div>
         </div>
         
@@ -634,17 +683,20 @@
                 
                 <h3>Features</h3>
                 <ul>
-                    <li><b>Hex Editor:</b> Fine-tune RGB/Hex values.</li>
+                    <li><b>Hex Editor:</b> Fine-tune RGB/HSL and Alpha (Transparency) values.</li>
+                    <li><b>Visualizer:</b> Real-time preview with Gloss, Matte, Metal, and Chrome simulation.</li>
                     <li><b>OEM Library:</b> 1000+ Real world paint codes.</li>
-                    <li><b>Visualizer:</b> Accurate Pearlescent overlay preview.</li>
-                    <li><b>PWA:</b> Installable on iOS/Android.</li>
+                    <li><b>Tools:</b> "Silent Injector" for bypassing Social Club validation.</li>
+                    <li><b>PWA:</b> Installable on iOS/Android as a native app.</li>
                 </ul>
 
                 <h3>How To Use</h3>
                 <ul>
-                    <li>1. Create/Select color.</li>
-                    <li>2. Copy Hex.</li>
-                    <li>3. Social Club > Edit Crew > Inspect Element > Paste > Save.</li>
+                    <li>1. Create a color in the Editor.</li>
+                    <li>2. Copy the Hex code (or use the Injector tool).</li>
+                    <li>3. Go to Social Club > Edit Crew.</li>
+                    <li>4. Use the "Inject" bookmarklet to set the color securely.</li>
+                    <li>5. Save Crew and restart your game.</li>
                 </ul>
 
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
@@ -709,11 +761,12 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v8.8</h2>
+        <h2>Change Log v8.9</h2>
         <ul>
-            <li><b>Bug Fix (Texture):</b> Matte texture no longer forces Pearl off, allowing "Matte Pearl" glitch preview.</li>
-            <li><b>Bug Fix (Fullscreen):</b> Full Screen Overlay now supports Texture and Pearl layers.</li>
-            <li><b>Bug Fix (Alpha):</b> Alpha slider correctly updates preview swatches.</li>
+            <li><b>New Guides:</b> Added "4D" Chrome, True Black, and Next-Gen Chameleon glitches to the Guides tab.</li>
+            <li><b>About Page:</b> Updated with full feature list and detailed instructions.</li>
+            <li><b>Visual Fixes:</b> Gloss overlays added to all swatches.</li>
+            <li><b>Bug Fixes:</b> Alpha slider updates preview, Fullscreen overlay supports textures.</li>
         </ul>
     </div>
 </div>
