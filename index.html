@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Ultimate GTA Crew Color Tool">
-<title>GTA Crew Color</title>
+<title>GTA Crew Color Tool</title>
 <link rel="apple-touch-icon" href="https://img.icons8.com/color/100/grand-theft-auto-v.png">
 <link rel="icon" type="image/png" href="https://img.icons8.com/color/48/grand-theft-auto-v.png">
 
@@ -20,10 +21,11 @@
         --accent-dim: #966b16;
         --text: #ffffff;
         --text-dim: #888888;
-        --glass: rgba(15, 15, 15, 0.9);
+        --glass: rgba(15, 15, 15, 0.95);
         --glass-border: rgba(255, 255, 255, 0.08);
         --safe-bottom: env(safe-area-inset-bottom);
         --safe-top: env(safe-area-inset-top);
+        --danger: #ef4444;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
@@ -59,7 +61,10 @@
             display: flex; flex-direction: column;
             padding: 30px 20px;
         }
-        .nav-logo { font-size: 1.5rem; font-weight: 900; margin-bottom: 40px; color: var(--accent); letter-spacing: 1px; }
+        .nav-logo { 
+            font-size: 1.4rem; font-weight: 900; margin-bottom: 40px; 
+            color: var(--accent); letter-spacing: 0.5px; line-height: 1.3;
+        }
         .nav-item {
             display: flex; align-items: center; gap: 15px;
             padding: 15px; margin-bottom: 5px;
@@ -79,8 +84,8 @@
         .mobile-header {
             height: 60px; display: flex; align-items: center; justify-content: center;
             border-bottom: 1px solid var(--glass-border);
-            background: var(--bg); font-weight: 900; color: var(--accent); letter-spacing: 1px;
-            flex-shrink: 0;
+            background: var(--bg); font-weight: 800; color: var(--accent); 
+            letter-spacing: 0.5px; flex-shrink: 0; font-size: 1.1rem; white-space: nowrap;
         }
         .nav-container {
             position: fixed; bottom: 0; left: 0; width: 100%;
@@ -144,10 +149,14 @@
 
     /* Inputs */
     .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
-    input[type="text"] {
+    input[type="text"], textarea {
         flex: 1; background: #000; border: 1px solid #333; color: #fff;
-        padding: 12px; border-radius: 8px; font-family: monospace; font-size: 1rem; text-transform: uppercase;
+        padding: 12px; border-radius: 8px; font-family: monospace; font-size: 1rem; width: 100%;
     }
+    textarea { font-family: sans-serif; resize: none; height: 80px; }
+    label { color: #aaa; font-size: 0.8rem; display: block; margin-bottom: 4px; }
+    .input-group { margin-bottom: 12px; }
+    
     .slider-wrap { margin-bottom: 15px; }
     .slider-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 5px; }
     input[type="range"] { width: 100%; height: 6px; background: #333; border-radius: 3px; appearance: none; }
@@ -165,23 +174,53 @@
     .btn:active { transform: scale(0.98); }
     .btn-primary { background: var(--accent); color: #000; box-shadow: 0 4px 12px rgba(252, 175, 23, 0.2); }
     .btn-sec { background: #222; color: #fff; border: 1px solid #333; }
+    .btn-danger { background: var(--danger); color: #fff; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
     .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .btn-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px; }
 
     /* Library */
     .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
     .chip { padding: 6px 12px; background: #222; border-radius: 20px; font-size: 0.8rem; white-space: nowrap; cursor: pointer; border: 1px solid #333; }
     .chip.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-    .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+    .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
     .swatch {
         background: #1a1a1a; border-radius: 10px; overflow: hidden;
-        border: 1px solid #333; position: relative; aspect-ratio: 1;
+        border: 1px solid #333; position: relative;
         display: flex; flex-direction: column; cursor: pointer;
+        min-height: 160px;
     }
-    .swatch-color { flex: 2; width: 100%; }
-    .swatch-meta { flex: 1; padding: 6px; font-size: 0.7rem; display: flex; flex-direction: column; justify-content: center; text-align: center; background: #151515; }
-    .swatch-meta b { color: #fff; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .swatch-meta span { color: var(--text-dim); }
+    .swatch-color { height: 60px; width: 100%; position: relative; }
+    .swatch-manuf { 
+        position: absolute; top: 0; left: 0; 
+        background: rgba(0,0,0,0.6); color: #ccc; 
+        font-size: 0.6rem; padding: 2px 6px; 
+        border-bottom-right-radius: 6px; 
+        backdrop-filter: blur(4px);
+    }
+    .swatch-detail-btn {
+        position: absolute; top: 5px; right: 5px;
+        width: 24px; height: 24px; border-radius: 50%;
+        background: rgba(0,0,0,0.5); border: 1px solid #444;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 12px; transition: 0.2s;
+        z-index: 10;
+    }
+    .swatch-detail-btn:hover { background: var(--accent); color: black; }
+    
+    .swatch-meta { 
+        flex: 1; padding: 8px; font-size: 0.75rem; 
+        display: flex; flex-direction: column; gap: 2px;
+        background: #151515; 
+    }
+    .swatch-meta b { color: #fff; font-size: 0.85rem; line-height: 1.2; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .meta-hex { color: var(--accent); font-family: monospace; font-weight: bold; }
+    .meta-credit { 
+        margin-top: auto; padding-top: 6px; 
+        border-top: 1px solid #222; color: #666; 
+        font-size: 0.65rem; text-transform: uppercase; 
+    }
+    .meta-credit span { color: #888; }
 
     /* Guide Items */
     .guide-item { background: #1a1a1a; border-radius: 8px; overflow: hidden; margin-bottom: 10px; border: 1px solid #333; }
@@ -194,14 +233,14 @@
     /* Modal */
     .modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+        background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
         z-index: 2000; display: none; justify-content: center; align-items: center;
         padding: 20px;
     }
     .modal-overlay.open { display: flex; }
     .modal {
         background: var(--surface); border: 1px solid var(--surface-border);
-        border-radius: 16px; width: 100%; max-width: 500px; max-height: 80vh;
+        border-radius: 16px; width: 100%; max-width: 500px; max-height: 90vh;
         overflow-y: auto; padding: 25px; position: relative;
         box-shadow: 0 10px 40px rgba(0,0,0,0.8);
     }
@@ -210,14 +249,29 @@
         background: #222; border: none; color: #fff;
         width: 30px; height: 30px; border-radius: 50%;
         cursor: pointer; display: flex; align-items: center; justify-content: center;
+        z-index: 10;
     }
+    
+    /* Detail Modal Specifics */
+    .detail-img-box {
+        width: 100%; height: 200px; background: #222;
+        border-radius: 8px; margin-bottom: 20px;
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden; border: 1px solid #333; position: relative;
+    }
+    .detail-img-box img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .detail-placeholder { color: #555; position: absolute; }
+    
+    .detail-row { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding: 8px 0; font-size: 0.9rem; }
+    .detail-label { color: var(--text-dim); }
+    .detail-val { color: #fff; font-weight: bold; text-align: right; }
     
     /* Toast */
     .toast {
         position: fixed; bottom: calc(80px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(20px);
         background: var(--accent); color: #000; padding: 12px 24px;
         border-radius: 50px; font-weight: bold; opacity: 0; pointer-events: none;
-        transition: 0.3s; z-index: 1000; box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-size: 0.9rem; width: max-content;
+        transition: 0.3s; z-index: 3000; box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-size: 0.9rem; width: max-content;
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     
@@ -231,10 +285,10 @@
 <body>
 
 <div id="app">
-    <div class="mobile-header">GTA CREW TOOL</div>
+    <div class="mobile-header">GTA CREW COLOR TOOL</div>
 
     <nav class="nav-container">
-        <div class="nav-logo">GTA CREW<br>TOOL</div>
+        <div class="nav-logo">GTA CREW COLOR TOOL</div>
         <div class="nav-item active" onclick="nav('editor', this)"><div class="nav-icon">🎨</div><div class="nav-label">Editor</div></div>
         <div class="nav-item" onclick="nav('library', this)"><div class="nav-icon">📚</div><div class="nav-label">Library</div></div>
         <div class="nav-item" onclick="nav('guides', this)"><div class="nav-icon">📖</div><div class="nav-label">Glitches</div></div>
@@ -256,7 +310,7 @@
                 </div>
                 <div class="btn-grid">
                     <button class="btn btn-primary" onclick="copyHex()">COPY HEX</button>
-                    <button class="btn btn-sec" onclick="saveColor()">SAVE ⭐</button>
+                    <button class="btn btn-sec" onclick="openSaveModal()">SAVE ⭐</button>
                 </div>
                 <button class="btn btn-sec" style="margin-top:10px; font-size:0.8rem; color:#aaa;" onclick="copyTrueBlack()">Copy True Black (#000000AA)</button>
             </div>
@@ -264,7 +318,7 @@
             <div class="card">
                 <h2>Color Mixer</h2>
                 <div class="input-row">
-                    <input type="text" id="hex-input" value="#000000" maxlength="7" oninput="updateFromHex(this.value)">
+                    <input type="text" id="hex-input" value="#000000" maxlength="9" oninput="updateFromHex(this.value)">
                 </div>
                 <div class="slider-wrap">
                     <div class="slider-label"><span>Red</span><span id="val-r">0</span></div>
@@ -287,17 +341,14 @@
 
         <div id="page-library" class="page">
             <div class="card">
-                <h2>OEM Color Library</h2>
-                <input type="text" placeholder="Search Brand or Color Name..." oninput="filterLibrary(this.value)" style="margin-bottom:15px; width:100%;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h2>OEM Color Library</h2>
+                    <span id="lib-status" style="font-size:0.7rem; color:var(--text-dim);">Loading...</span>
+                </div>
+                <input type="text" placeholder="Search..." oninput="filterLibrary(this.value)" style="margin-bottom:15px; width:100%;">
                 
                 <div class="filter-chips" id="chip-container">
                     <div class="chip active" onclick="setFilter('All')">All</div>
-                    <div class="chip" onclick="setFilter('Ferrari')">Ferrari</div>
-                    <div class="chip" onclick="setFilter('Porsche')">Porsche</div>
-                    <div class="chip" onclick="setFilter('Lamborghini')">Lamborghini</div>
-                    <div class="chip" onclick="setFilter('BMW')">BMW</div>
-                    <div class="chip" onclick="setFilter('JDM')">JDM</div>
-                    <div class="chip" onclick="setFilter('Muscle')">Muscle</div>
                 </div>
 
                 <div id="lib-grid" class="swatch-grid"></div>
@@ -307,64 +358,24 @@
         <div id="page-guides" class="page">
             <div class="card">
                 <h2>Glitches & Guides</h2>
-                
-                <div class="guide-item">
-                    <div class="guide-header" onclick="toggleGuide(this)">1. How to Apply Crew Colors <span>▼</span></div>
-                    <div class="guide-content">
-                        1. Go to Rockstar Social Club -> Edit Crew.<br>
-                        2. Right-click the color box -> Inspect Element.<br>
-                        3. Find the value ending in <code>#......</code>.<br>
-                        4. Paste your Hex. If it says "Not Supported", add <code>00</code> or <code>AA</code> to the end (e.g., <code>#FF0000AA</code>).<br>
-                        5. Save Crew and restart game.
-                    </div>
-                </div>
-
-                <div class="guide-item">
-                    <div class="guide-header" onclick="toggleGuide(this)">2. Matte + Pearlescent Glitch <span>▼</span></div>
-                    <div class="guide-content">
-                        1. Go to LSC. Apply a <b>Matte</b> color.<br>
-                        2. Go to Metallic, scroll for 3 seconds (don't buy).<br>
-                        3. Back out, buy a License Plate (change text/color).<br>
-                        4. Go back to Respray > Pearlescent.<br>
-                        5. It is now unlocked on Matte paint.
-                    </div>
-                </div>
-
-                <div class="guide-item">
-                    <div class="guide-header" onclick="toggleGuide(this)">3. Pure Black Smoke (Patriot) <span>▼</span></div>
-                    <div class="guide-content">
-                        1. Set Crew Color to <code>#000000AA</code>.<br>
-                        2. Buy <b>Patriot Tire Smoke</b> in LSC.<br>
-                        3. Change Smoke to <b>Crew Smoke</b>.<br>
-                        4. The smoke will now be pitch black instead of Patriot colors.
-                    </div>
-                </div>
-
-                <div class="guide-item">
-                    <div class="guide-header" onclick="toggleGuide(this)">4. Instant Crew Color Update <span>▼</span></div>
-                    <div class="guide-content">
-                        You don't need to restart the whole game!<br>
-                        1. Change color on Social Club & Save.<br>
-                        2. In Game: Switch from Online to Story Mode.<br>
-                        3. Once in Story Mode, go back to Invite Only Session.<br>
-                        4. The color is now updated in LSC.
-                    </div>
-                </div>
-
-                <div class="guide-item">
-                    <div class="guide-header" onclick="toggleGuide(this)">5. Secret Gold Paint <span>▼</span></div>
-                    <div class="guide-content">
-                        This hex mimics the "Secret Gold" texture often found on modded cars.<br>
-                        Hex: <code>#B58A40</code><br>
-                        Apply this over "Brushed Gold" or "Pure Gold" metals for different effects.
-                    </div>
-                </div>
+                <div class="guide-item"><div class="guide-header" onclick="toggleGuide(this)">1. How to Apply Crew Colors <span>▼</span></div><div class="guide-content">1. Go to Rockstar Social Club -> Edit Crew.<br>2. Right-click the color box -> Inspect Element.<br>3. Find the value ending in <code>#......</code>.<br>4. Paste your Hex. If "Not Supported", add <code>00</code> or <code>AA</code> to the end.<br>5. Save Crew and restart game.</div></div>
+                <div class="guide-item"><div class="guide-header" onclick="toggleGuide(this)">2. Matte + Pearl Glitch <span>▼</span></div><div class="guide-content">1. Go to LSC. Apply Matte color.<br>2. Go to Metallic, scroll 3s.<br>3. Back out, buy Plate.<br>4. Go back to Respray > Pearlescent.</div></div>
+                <div class="guide-item"><div class="guide-header" onclick="toggleGuide(this)">3. Pure Black Smoke <span>▼</span></div><div class="guide-content">1. Set Crew Color to <code>#000000AA</code>.<br>2. Buy Patriot Tire Smoke.<br>3. Change Smoke to Crew Smoke.</div></div>
+                <div class="guide-item"><div class="guide-header" onclick="toggleGuide(this)">4. Instant Update <span>▼</span></div><div class="guide-content">1. Save color on Social Club.<br>2. Switch from Online to Story Mode.<br>3. Return to Invite Only Session.<br>4. Color is now updated in LSC.</div></div>
+                <div class="guide-item"><div class="guide-header" onclick="toggleGuide(this)">5. Secret Gold <span>▼</span></div><div class="guide-content">Use Hex <code>#B58A40</code> over Brushed Gold or Pure Gold metals for a hidden texture.</div></div>
+                <div class="guide-item"><div class="guide-header" onclick="toggleGuide(this)">6. Worn Texture Merge <span>▼</span></div><div class="guide-content">Requires Merge Glitch. Use a donor car with "Worn" paint (e.g. Rusty Rebel) and merge onto target car with custom crew color.</div></div>
             </div>
         </div>
 
         <div id="page-saved" class="page">
             <div class="card">
                 <h2>My Favorites</h2>
+                <input type="text" id="saved-search" placeholder="Search your saved colors..." oninput="renderSaved()" style="margin-bottom:15px; width:100%;">
+                
+                <div class="btn-grid" style="margin-bottom:20px;">
+                    <button class="btn btn-sec" onclick="exportFavs()">Backup (Export)</button>
+                    <button class="btn btn-sec" onclick="importFavs()">Restore (Import)</button>
+                </div>
                 <div id="saved-grid" class="swatch-grid"></div>
                 <div id="empty-msg" style="text-align:center; color:#555; padding:20px; font-style:italic;">No saved colors yet.</div>
             </div>
@@ -372,377 +383,497 @@
 
         <div id="page-about" class="page">
             <div class="card">
-                <h2>About GTA Crew Tool</h2>
+                <h2>About</h2>
                 <p>The ultimate utility for customizing vehicle colors in GTA Online. Created by <b style="color:var(--accent)">ArtfulTwo79049</b>.</p>
                 
                 <h3>Features</h3>
                 <ul>
-                    <li><b>Hex Editor:</b> Fine-tune RGB values and generate specific hex codes.</li>
-                    <li><b>OEM Library:</b> Over 100+ real-world paint codes from Ferrari, Porsche, JDM legends, and more.</li>
-                    <li><b>Visualizer:</b> Preview colors with accurate Pearlescent overlays before applying them in-game.</li>
-                    <li><b>Glitch Guides:</b> Built-in tutorials for the most popular paint glitches.</li>
-                    <li><b>Offline Capable:</b> Install as a PWA on iOS and Android.</li>
+                    <li><b>Hex Editor:</b> Fine-tune RGB/Hex values.</li>
+                    <li><b>OEM Library:</b> 1000+ Real world paint codes.</li>
+                    <li><b>Visualizer:</b> Accurate Pearlescent overlay preview.</li>
+                    <li><b>PWA:</b> Installable on iOS/Android.</li>
                 </ul>
 
                 <h3>How To Use</h3>
                 <ul>
-                    <li><b>Create:</b> Use the sliders or library to select a color.</li>
-                    <li><b>Visualize:</b> Select a "Pearlescent" from the dropdown to see how it affects the base coat.</li>
-                    <li><b>Copy:</b> Hit the "Copy Hex" button.</li>
-                    <li><b>Apply:</b> Go to Social Club > Edit Crew > Inspect Element > Paste Hex > Save.</li>
+                    <li>1. Create/Select color.</li>
+                    <li>2. Copy Hex.</li>
+                    <li>3. Social Club > Edit Crew > Inspect Element > Paste > Save.</li>
                 </ul>
 
-                <button class="btn btn-sec" style="margin-top:20px;" onclick="openModal()">View Change Log</button>
-            </div>
-            
-            <div class="card" style="text-align:center; opacity:0.6; font-size:0.8rem;">
-                This tool is fan-made and not affiliated with Rockstar Games.
+                <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
             </div>
         </div>
 
     </main>
 </div>
 
+<div class="modal-overlay" id="save-modal">
+    <div class="modal">
+        <button class="close-modal" onclick="closeModal('save-modal')">✕</button>
+        <h2>Save Color</h2>
+        <div class="input-group">
+            <label>Color Name</label>
+            <input type="text" id="save-name-input" placeholder="Custom Color Name">
+        </div>
+        <div class="input-group">
+            <label>Manufacturer (Optional)</label>
+            <input type="text" id="save-manuf-input" placeholder="e.g. Custom, BMW, etc.">
+        </div>
+        <div class="input-group">
+            <label>End Code (Optional)</label>
+            <input type="text" id="save-end-input" placeholder="e.g. AA, 00">
+        </div>
+        <div class="input-group">
+            <label>Pearlescent (Optional)</label>
+            <input type="text" id="save-pearl-input" placeholder="e.g. Ice White">
+        </div>
+        <div class="input-group">
+            <label>Notes (Optional)</label>
+            <textarea id="save-note-input" placeholder="Additional details..."></textarea>
+        </div>
+        <button class="btn btn-primary" style="margin-top:15px;" onclick="confirmSave()">Save Color</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+        <button class="close-modal" onclick="closeModal('edit-modal')">✕</button>
+        <h2>Edit Color</h2>
+        <div class="input-group">
+            <label>Color Name</label>
+            <input type="text" id="edit-name-input">
+        </div>
+        <div class="input-group">
+            <label>Hex Code</label>
+            <input type="text" id="edit-hex-input">
+        </div>
+        <div class="input-group">
+            <label>Manufacturer</label>
+            <input type="text" id="edit-manuf-input">
+        </div>
+        <div class="input-group">
+            <label>End Code</label>
+            <input type="text" id="edit-end-input">
+        </div>
+        <div class="input-group">
+            <label>Pearlescent</label>
+            <input type="text" id="edit-pearl-input">
+        </div>
+        <div class="input-group">
+            <label>Notes</label>
+            <textarea id="edit-note-input"></textarea>
+        </div>
+        <button class="btn btn-primary" style="margin-top:15px;" onclick="saveEdit()">Update Color</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+        <h2 style="color:var(--danger)">Delete Color?</h2>
+        <p style="margin-bottom:20px;">Are you sure you want to delete this color? This action cannot be undone.</p>
+        <div class="btn-grid">
+            <button class="btn btn-sec" onclick="closeModal('delete-modal')">Cancel</button>
+            <button class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
-        <button class="close-modal" onclick="closeModal()">✕</button>
-        <h2>Change Log</h2>
+        <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
+        <h2>Change Log v5.2</h2>
+        <ul>
+            <li><b>Edit Feature:</b> You can now edit saved custom colors.</li>
+            <li><b>Safe Delete:</b> Added a confirmation modal preventing accidental deletions.</li>
+            <li><b>UI Update:</b> Moved delete button inside detail view to prevent overlap.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="modal-overlay" id="detail-modal">
+    <div class="modal">
+        <button class="close-modal" onclick="closeModal('detail-modal')">✕</button>
+        <h2 id="modal-title" style="padding-right:30px;">Color Name</h2>
         
-        <h3>v4.2 (Current)</h3>
-        <ul>
-            <li>Restored About Page with feature list and usage guide.</li>
-            <li>Added Changelog Modal.</li>
-        </ul>
+        <div class="detail-img-box" id="detail-img-box">
+            <div class="detail-placeholder">No Image Available</div>
+            <img id="modal-img" src="" alt="Preview">
+        </div>
 
-        <h3>v4.1</h3>
-        <ul>
-            <li>Added full GTA Online Pearlescent library (75+ colors).</li>
-            <li>Fixed visualizer preview to remove incorrect gradient shine.</li>
-        </ul>
+        <div class="detail-row"><span class="detail-label">Manufacturer</span><span class="detail-val" id="modal-manuf">-</span></div>
+        <div class="detail-row"><span class="detail-label">Hex Code</span><span class="detail-val" id="modal-hex">-</span></div>
+        <div class="detail-row"><span class="detail-label">End Code</span><span class="detail-val" id="modal-end">-</span></div>
+        <div class="detail-row"><span class="detail-label">Pearlescent</span><span class="detail-val" id="modal-pearl">-</span></div>
+        <div class="detail-row"><span class="detail-label">Shared By</span><span class="detail-val" id="modal-credit">-</span></div>
+        
+        <div style="margin-top:15px; background:#111; padding:10px; border-radius:6px; font-size:0.85rem; color:#ccc;">
+            <b>Notes:</b> <span id="modal-notes">-</span>
+        </div>
 
-        <h3>v4.0 PWA</h3>
-        <ul>
-            <li>Complete PWA overhaul for native app-like experience.</li>
-            <li>Added searchable OEM Library sorted by brand.</li>
-            <li>Added dedicated Glitch Guides tab.</li>
-            <li>Dark Mode UI optimization ("Glassmorphism").</li>
-        </ul>
-
-        <h3>v3.0</h3>
-        <ul>
-            <li>Initial public release.</li>
-            <li>Basic RGB sliders and Hex input.</li>
-            <li>Local Storage favorites system.</li>
-        </ul>
+        <div class="btn-grid-3">
+            <button class="btn btn-primary" id="modal-load-btn">Load</button>
+            <button class="btn btn-sec" id="modal-edit-btn" style="display:none;">Edit</button>
+            <button class="btn btn-danger" id="modal-delete-btn" style="display:none;">Delete</button>
+        </div>
     </div>
 </div>
 
 <div id="toast" class="toast">Copied!</div>
 
 <script>
-/* --- DATA --- */
-const PEARLS = [
-    {n: "None (Standard)", h: "transparent"},
-    {n: "Black", h: "#000000"},
-    {n: "Carbon Black", h: "#0F0F0F"},
-    {n: "Graphite", h: "#1C1D21"},
-    {n: "Anthracite Black", h: "#17161C"},
-    {n: "Black Steel", h: "#2A2D35"},
-    {n: "Dark Steel", h: "#39434D"},
-    {n: "Silver", h: "#5C6066"},
-    {n: "Bluish Silver", h: "#6D7682"},
-    {n: "Rolled Steel", h: "#4D5359"},
-    {n: "Shadow Silver", h: "#2F353B"},
-    {n: "Stone Silver", h: "#363A3F"},
-    {n: "Midnight Silver", h: "#202329"},
-    {n: "Cast Iron Silver", h: "#444E54"},
-    {n: "Red", h: "#8F2121"},
-    {n: "Torino Red", h: "#851F21"},
-    {n: "Formula Red", h: "#6B1B1B"},
-    {n: "Lava Red", h: "#8A1717"},
-    {n: "Blaze Red", h: "#8F2121"},
-    {n: "Grace Red", h: "#592328"},
-    {n: "Garnet Red", h: "#4C1519"},
-    {n: "Sunset Red", h: "#521A1E"},
-    {n: "Cabernet Red", h: "#361217"},
-    {n: "Wine Red", h: "#1C1014"},
-    {n: "Candy Red", h: "#80121D"},
-    {n: "Hot Pink", h: "#941E57"},
-    {n: "Pfister Pink", h: "#752445"},
-    {n: "Salmon Pink", h: "#B55C5E"},
-    {n: "Sunrise Orange", h: "#B55E24"},
-    {n: "Orange", h: "#B06021"},
-    {n: "Bright Orange", h: "#D67026"},
-    {n: "Gold", h: "#806636"},
-    {n: "Bronze", h: "#524430"},
-    {n: "Yellow", h: "#E6B825"},
-    {n: "Race Yellow", h: "#D6B831"},
-    {n: "Dew Yellow", h: "#8A913B"},
-    {n: "Dark Green", h: "#192624"},
-    {n: "Racing Green", h: "#213633"},
-    {n: "Sea Green", h: "#355957"},
-    {n: "Olive Green", h: "#474F3B"},
-    {n: "Bright Green", h: "#42692F"},
-    {n: "Gasoline Green", h: "#335252"},
-    {n: "Lime Green", h: "#5B7D30"},
-    {n: "Midnight Blue", h: "#162130"},
-    {n: "Galaxy Blue", h: "#1C262E"},
-    {n: "Dark Blue", h: "#121A26"},
-    {n: "Saxon Blue", h: "#283C52"},
-    {n: "Blue", h: "#365675"},
-    {n: "Mariner Blue", h: "#374F5C"},
-    {n: "Harbor Blue", h: "#303C4D"},
-    {n: "Diamond Blue", h: "#99BAD6"},
-    {n: "Surf Blue", h: "#5488A8"},
-    {n: "Nautical Blue", h: "#2E4759"},
-    {n: "Racing Blue", h: "#26487A"},
-    {n: "Ultra Blue", h: "#296694"},
-    {n: "Light Blue", h: "#5480A6"},
-    {n: "Chocolate Brown", h: "#38291F"},
-    {n: "Bison Brown", h: "#2E241E"},
-    {n: "Creek Brown", h: "#2E2621"},
-    {n: "Feltzer Brown", h: "#3B2921"},
-    {n: "Maple Brown", h: "#473024"},
-    {n: "Beechwood Brown", h: "#5E4633"},
-    {n: "Sienna Brown", h: "#5E432E"},
-    {n: "Saddle Brown", h: "#4F3325"},
-    {n: "Moss Brown", h: "#47453B"},
-    {n: "Woodbeech Brown", h: "#66543D"},
-    {n: "Straw Brown", h: "#635845"},
-    {n: "Sandy Brown", h: "#75634F"},
-    {n: "Bleached Brown", h: "#6B5F54"},
-    {n: "Schafter Purple", h: "#292C3D"},
-    {n: "Midnight Purple", h: "#1B1724"},
-    {n: "Bright Purple", h: "#3D2247"},
-    {n: "Cream", h: "#CFCCB8"},
-    {n: "Ice White", h: "#F0F0F0"},
-    {n: "Frost White", h: "#B3B9C2"}
-];
-
-const LIBRARY = [
-    // Ferrari
-    {c:"Ferrari", n:"Rosso Corsa", h:"#D40000"},
-    {c:"Ferrari", n:"Rosso Scuderia", h:"#CF1815"},
-    {c:"Ferrari", n:"Giallo Modena", h:"#ECE819"},
-    {c:"Ferrari", n:"Blu Tour de France", h:"#082352"},
-    {c:"Ferrari", n:"Verde British", h:"#0E3224"},
-    
-    // Porsche
-    {c:"Porsche", n:"Guards Red", h:"#CC181E"},
-    {c:"Porsche", n:"Miami Blue", h:"#007D9E"},
-    {c:"Porsche", n:"Lizard Green", h:"#58A51C"},
-    {c:"Porsche", n:"Ultraviolet", h:"#381757"},
-    {c:"Porsche", n:"Crayon Grey", h:"#8E9194"},
-    {c:"Porsche", n:"Rubystone Red", h:"#7C2445"},
-    {c:"Porsche", n:"Mint Green", h:"#2AD39D"},
-
-    // Lamborghini
-    {c:"Lamborghini", n:"Verde Ithaca", h:"#60BD23"},
-    {c:"Lamborghini", n:"Arancio Borealis", h:"#F57C00"},
-    {c:"Lamborghini", n:"Giallo Orion", h:"#FFC500"},
-    {c:"Lamborghini", n:"Viola Parsifae", h:"#390F57"},
-    {c:"Lamborghini", n:"Blu Cepheus", h:"#2491CD"},
-
-    // BMW
-    {c:"BMW", n:"Yas Marina Blue", h:"#4D93B5"},
-    {c:"BMW", n:"Austin Yellow", h:"#B59900"},
-    {c:"BMW", n:"Sakhir Orange", h:"#D64104"},
-    {c:"BMW", n:"Isle of Man Green", h:"#004C25"},
-    {c:"BMW", n:"Techno Violet", h:"#462F6D"},
-
-    // JDM
-    {c:"JDM", n:"Midnight Purple II", h:"#2B0F2E"},
-    {c:"JDM", n:"Midnight Purple III", h:"#21092B"},
-    {c:"JDM", n:"Bayside Blue", h:"#001A70"},
-    {c:"JDM", n:"Millennium Jade", h:"#5B6654"},
-    {c:"JDM", n:"Active Red", h:"#B81224"},
-    {c:"JDM", n:"Championship White", h:"#F1F2ED"},
-
-    // Muscle
-    {c:"Muscle", n:"Plum Crazy", h:"#592370"},
-    {c:"Muscle", n:"Go Mango", h:"#E85E21"},
-    {c:"Muscle", n:"Grabber Blue", h:"#0075BC"},
-    {c:"Muscle", n:"Hugger Orange", h:"#F25418"},
-    {c:"Muscle", n:"Sublime Green", h:"#74B81F"}
-];
+/* --- DATA & CONFIG --- */
+const PEARLS=[{n:"None",h:"transparent"},{n:"Ice White",h:"#F0F0F0"},{n:"Race Yellow",h:"#D6B831"},{n:"Hot Pink",h:"#941E57"},{n:"Ultra Blue",h:"#296694"},{n:"Lime Green",h:"#5B7D30"},{n:"Sunrise Orange",h:"#B55E24"}];
+const FALLBACK_LIB=[{man:"Ferrari",name:"Rosso Corsa",hex:"#D40000",end:"",pearl:"-",img:"",credit:"Community",notes:"Standard Red"}];
 
 let state = {
-    r: 0, g: 0, b: 0,
-    hex: "#000000",
-    name: "Black",
-    favs: JSON.parse(localStorage.getItem('gta_pwa_favs_v2') || '[]'),
-    filterCat: 'All',
-    filterText: ''
+    r:0, g:0, b:0, hex:"#000000", endCode:"", name:"Black",
+    favs: JSON.parse(localStorage.getItem('gta_pwa_favs_v2')||'[]'),
+    library: [], filterCat:'All', filterText:'',
+    pendingActionIndex: -1 // Tracks which item is being edited/deleted
 };
 
-// --- INITIALIZATION ---
-(function init() {
-    const pSelect = document.getElementById('pearl-select');
-    PEARLS.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.h;
-        opt.textContent = p.n;
-        pSelect.appendChild(opt);
-    });
-    
+/* --- INIT --- */
+(function(){
+    const pSelect=document.getElementById('pearl-select');
+    PEARLS.forEach(p=>{const o=document.createElement('option');o.value=p.h;o.textContent=p.n;pSelect.appendChild(o)});
     updateFromHex("#000000");
-    renderLibrary();
+    
+    const s=document.createElement('script');
+    s.src="https://docs.google.com/spreadsheets/d/1orhiEtiwe3uxTZKAG7ZosKKSKRzYihyU2DoBQe6aPcQ/gviz/tq?tqx=responseHandler:onSheetLoad&gid=0";
+    s.onerror=()=>{useFallback("Connection Failed")};
+    document.body.appendChild(s);
 })();
 
-// --- NAVIGATION ---
-function nav(pageId, el) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + pageId).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+/* --- DATA PARSING --- */
+window.onSheetLoad = function(json) {
+    try {
+        const rows = json.table.rows;
+        const fetched = [];
+        const cats = new Set();
+        
+        rows.forEach(r => {
+            const getVal = (idx) => r.c[idx] ? String(r.c[idx].v).trim() : "";
+            let h = getVal(2);
+            if(h.match(/^#?([0-9A-Fa-f]{6})$/)) {
+                if(!h.startsWith('#')) h = '#'+h;
+                const item = {
+                    man: getVal(0) || "Other",
+                    name: getVal(1) || "Unknown",
+                    hex: h.toUpperCase(),
+                    end: getVal(3),
+                    pearl: getVal(4),
+                    img: getVal(5),
+                    credit: getVal(6) || "Unknown",
+                    notes: getVal(7)
+                };
+                fetched.push(item);
+                cats.add(item.man);
+            }
+        });
+        
+        if(fetched.length>0) {
+            state.library = fetched;
+            populateChips(Array.from(cats).sort());
+            document.getElementById('lib-status').innerText = `Live: ${fetched.length} colors`;
+            renderLibrary();
+        } else useFallback("Empty");
+    } catch(e){ useFallback("Parse Error"); }
+};
+
+function useFallback(msg){
+    console.log("Fallback: "+msg);
+    state.library = FALLBACK_LIB;
+    document.getElementById('lib-status').innerText = "Offline Mode";
+    renderLibrary();
+}
+
+/* --- UI LOGIC --- */
+function nav(id, el){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
     el.classList.add('active');
-    
-    if(pageId === 'library') renderLibrary();
-    if(pageId === 'saved') renderSaved();
+    if(id==='library') renderLibrary();
+    if(id==='saved') renderSaved();
 }
 
-function toggleGuide(header) {
-    const content = header.nextElementSibling;
-    content.classList.toggle('open');
-    header.querySelector('span').innerText = content.classList.contains('open') ? '▲' : '▼';
-}
-
-function openModal() {
-    document.getElementById('changelog-modal').classList.add('open');
-}
-
-function closeModal() {
-    document.getElementById('changelog-modal').classList.remove('open');
-}
-
-// --- CORE LOGIC ---
-function updateFromRGB() {
-    state.r = parseInt(document.getElementById('range-r').value);
-    state.g = parseInt(document.getElementById('range-g').value);
-    state.b = parseInt(document.getElementById('range-b').value);
-    
-    document.getElementById('val-r').innerText = state.r;
-    document.getElementById('val-g').innerText = state.g;
-    document.getElementById('val-b').innerText = state.b;
-
-    state.hex = "#" + ((1 << 24) + (state.r << 16) + (state.g << 8) + state.b).toString(16).slice(1).toUpperCase();
-    state.name = "Custom Mix";
-    
+function updateFromRGB(){
+    state.r=parseInt(document.getElementById('range-r').value);
+    state.g=parseInt(document.getElementById('range-g').value);
+    state.b=parseInt(document.getElementById('range-b').value);
+    state.hex="#"+((1<<24)+(state.r<<16)+(state.g<<8)+state.b).toString(16).slice(1).toUpperCase();
+    state.name="Custom Mix"; state.endCode="";
     syncUI();
 }
 
-function updateFromHex(val) {
-    if(!val.startsWith('#')) val = '#' + val;
-    if(/^#[0-9A-F]{6}$/i.test(val)) {
-        state.hex = val.toUpperCase();
-        const r = parseInt(state.hex.slice(1,3), 16);
-        const g = parseInt(state.hex.slice(3,5), 16);
-        const b = parseInt(state.hex.slice(5,7), 16);
-        
-        state.r = r; state.g = g; state.b = b;
-        document.getElementById('range-r').value = r;
-        document.getElementById('range-g').value = g;
-        document.getElementById('range-b').value = b;
-        document.getElementById('val-r').innerText = r;
-        document.getElementById('val-g').innerText = g;
-        document.getElementById('val-b').innerText = b;
-        state.name = "Custom Hex";
-        
-        syncUI(false); 
+function updateFromHex(val){
+    if(!val.startsWith('#')) val='#'+val;
+    if(/^#[0-9A-F]{6}$/i.test(val)){
+        state.hex=val.toUpperCase();
+        state.r=parseInt(state.hex.slice(1,3),16);
+        state.g=parseInt(state.hex.slice(3,5),16);
+        state.b=parseInt(state.hex.slice(5,7),16);
+        document.getElementById('range-r').value=state.r;
+        document.getElementById('range-g').value=state.g;
+        document.getElementById('range-b').value=state.b;
+        state.name="Custom Hex"; state.endCode="";
+        syncUI(false);
     }
 }
 
-function loadColor(hex, name) {
+function syncUI(updateInp=true){
+    if(updateInp) document.getElementById('hex-input').value=state.hex;
+    document.getElementById('disp-hex').innerText=state.hex + (state.endCode ? state.endCode : "");
+    document.getElementById('disp-name').innerText=state.name;
+    document.getElementById('layer-base').style.backgroundColor=state.hex;
+    document.getElementById('val-r').innerText=state.r;
+    document.getElementById('val-g').innerText=state.g;
+    document.getElementById('val-b').innerText=state.b;
+}
+
+function updatePearl(){ document.documentElement.style.setProperty('--pearl',document.getElementById('pearl-select').value); }
+
+/* --- LIBRARY & MODAL --- */
+function populateChips(cats){
+    const c=document.getElementById('chip-container');
+    c.innerHTML='<div class="chip active" onclick="setFilter(\'All\')">All</div>';
+    cats.forEach(x=>{
+        const d=document.createElement('div'); d.className='chip'; d.innerText=x;
+        d.onclick=()=>setFilter(x); c.appendChild(d);
+    });
+}
+
+function setFilter(cat){ state.filterCat=cat; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); event.target.classList.add('active'); renderLibrary(); }
+function filterLibrary(txt){ state.filterText=txt.toLowerCase(); renderLibrary(); }
+
+function renderLibrary(){
+    const g=document.getElementById('lib-grid'); g.innerHTML="";
+    const list=state.library.filter(c=>{
+        const mCat=state.filterCat==='All'||c.man===state.filterCat;
+        const mTxt=c.name.toLowerCase().includes(state.filterText)||c.man.toLowerCase().includes(state.filterText);
+        return mCat&&mTxt;
+    }).slice(0,100);
+
+    list.forEach(c=>{
+        const el=document.createElement('div'); el.className='swatch';
+        el.innerHTML=`
+            <div class="swatch-color" style="background:${c.hex}" onclick="loadColor('${c.hex}','${c.name}','${c.end}')">
+                <div class="swatch-manuf">${c.man}</div>
+            </div>
+            <div class="swatch-detail-btn" onclick="openDetail(this)">🔍</div>
+            <div class="swatch-meta" onclick="loadColor('${c.hex}','${c.name}','${c.end}')">
+                <b>${c.name}</b>
+                <span class="meta-hex">${c.hex}${c.end}</span>
+                <div class="meta-credit">By: <span>${c.credit}</span></div>
+            </div>`;
+        el.dataset.json = JSON.stringify(c);
+        g.appendChild(el);
+    });
+}
+
+function openDetail(btn){
+    const data = JSON.parse(btn.parentElement.dataset.json);
+    
+    document.getElementById('modal-title').innerText = data.name;
+    document.getElementById('modal-manuf').innerText = data.man || "Custom";
+    document.getElementById('modal-hex').innerText = data.hex;
+    document.getElementById('modal-end').innerText = data.end || "None";
+    document.getElementById('modal-pearl').innerText = data.pearl || "-";
+    document.getElementById('modal-credit').innerText = data.credit || "User";
+    document.getElementById('modal-notes').innerText = data.notes || "No notes";
+    
+    const img = document.getElementById('modal-img');
+    const ph = document.querySelector('.detail-placeholder');
+    const box = document.getElementById('detail-img-box');
+    
+    img.style.display = 'none';
+    ph.style.display = 'block';
+    
+    if(!data.img) {
+         box.style.display = 'none';
+    } else {
+         box.style.display = 'flex';
+         if(data.img.startsWith('http')) {
+             img.src = data.img;
+             img.onload = function() { this.style.display = 'block'; ph.style.display = 'none'; };
+             img.onerror = function() { this.style.display = 'none'; ph.style.display = 'block'; };
+         }
+    }
+
+    document.getElementById('modal-load-btn').onclick = () => {
+        loadColor(data.hex, data.name, data.end);
+        closeModal('detail-modal');
+    };
+
+    // Manage Edit/Delete Buttons
+    const delBtn = document.getElementById('modal-delete-btn');
+    const editBtn = document.getElementById('modal-edit-btn');
+    
+    if (data.isSaved) {
+        state.pendingActionIndex = data.index;
+        delBtn.style.display = 'block';
+        editBtn.style.display = 'block';
+        
+        delBtn.onclick = () => {
+            closeModal('detail-modal');
+            document.getElementById('delete-modal').classList.add('open');
+        };
+        
+        editBtn.onclick = () => openEditModal();
+        
+        // Setup confirm delete button once
+        document.getElementById('confirm-delete-btn').onclick = () => {
+            state.favs.splice(state.pendingActionIndex, 1);
+            localStorage.setItem('gta_pwa_favs_v2', JSON.stringify(state.favs));
+            closeModal('delete-modal');
+            renderSaved();
+            toast("Deleted");
+        };
+
+    } else {
+        delBtn.style.display = 'none';
+        editBtn.style.display = 'none';
+    }
+
+    document.getElementById('detail-modal').classList.add('open');
+}
+
+function loadColor(hex, name, end){
     updateFromHex(hex);
     state.name = name;
-    document.getElementById('disp-name').innerText = name;
-    document.getElementById('hex-input').value = hex;
+    state.endCode = end || "";
+    syncUI();
     nav('editor', document.querySelectorAll('.nav-item')[0]);
 }
 
-function syncUI(updateInput = true) {
-    if(updateInput) document.getElementById('hex-input').value = state.hex;
-    document.getElementById('disp-hex').innerText = state.hex;
-    document.getElementById('disp-name').innerText = state.name;
-    document.getElementById('layer-base').style.backgroundColor = state.hex;
+/* --- EDIT LOGIC --- */
+function openEditModal() {
+    closeModal('detail-modal');
+    const item = state.favs[state.pendingActionIndex];
+    document.getElementById('edit-name-input').value = item.n;
+    document.getElementById('edit-hex-input').value = item.h;
+    document.getElementById('edit-manuf-input').value = item.man || "";
+    document.getElementById('edit-end-input').value = item.e || "";
+    document.getElementById('edit-pearl-input').value = item.pearl || "";
+    document.getElementById('edit-note-input').value = item.notes || "";
+    document.getElementById('edit-modal').classList.add('open');
 }
 
-function updatePearl() {
-    const pearlHex = document.getElementById('pearl-select').value;
-    document.documentElement.style.setProperty('--pearl', pearlHex);
-}
-
-// --- LIBRARY LOGIC ---
-function setFilter(cat) {
-    state.filterCat = cat;
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    event.target.classList.add('active');
-    renderLibrary();
-}
-
-function filterLibrary(text) {
-    state.filterText = text.toLowerCase();
-    renderLibrary();
-}
-
-function renderLibrary() {
-    const grid = document.getElementById('lib-grid');
-    grid.innerHTML = "";
-    
-    let filtered = LIBRARY.filter(c => {
-        const matchesCat = state.filterCat === 'All' || c.c === state.filterCat;
-        const matchesText = c.n.toLowerCase().includes(state.filterText) || c.c.toLowerCase().includes(state.filterText);
-        return matchesCat && matchesText;
-    });
-
-    filtered.forEach(c => {
-        const el = document.createElement('div');
-        el.className = 'swatch';
-        el.innerHTML = `<div class="swatch-color" style="background:${c.h}"></div><div class="swatch-meta"><b>${c.n}</b><span>${c.h}</span></div>`;
-        el.onclick = () => loadColor(c.h, c.n);
-        grid.appendChild(el);
-    });
-}
-
-// --- FAVS & ACTIONS ---
-function copyHex() {
-    navigator.clipboard.writeText(state.hex).then(() => toast(`Copied: ${state.hex}`));
-}
-function copyTrueBlack() {
-    navigator.clipboard.writeText("#000000AA").then(() => toast("Copied True Black Code"));
-}
-function toast(msg) {
-    const t = document.getElementById('toast');
-    t.innerText = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2000);
-}
-function saveColor() {
-    if(!state.favs.some(f => f.h === state.hex)) {
-        state.favs.push({h: state.hex, n: state.name});
-        localStorage.setItem('gta_pwa_favs_v2', JSON.stringify(state.favs));
-        toast("Saved to Favorites");
-    } else {
-        toast("Already Saved");
-    }
-}
-function renderSaved() {
-    const grid = document.getElementById('saved-grid');
-    grid.innerHTML = "";
-    document.getElementById('empty-msg').style.display = state.favs.length ? 'none' : 'block';
-    state.favs.forEach((c, idx) => {
-        const el = document.createElement('div');
-        el.className = 'swatch';
-        el.innerHTML = `<div class="swatch-color" style="background:${c.h}"><button style="position:absolute;top:0;right:0;background:rgba(255,0,0,0.7);color:white;border:none;padding:4px 8px;font-size:10px;cursor:pointer;" onclick="event.stopPropagation(); removeFav(${idx})">X</button></div><div class="swatch-meta"><b>${c.n}</b><span>${c.h}</span></div>`;
-        el.onclick = () => loadColor(c.h, c.n);
-        grid.appendChild(el);
-    });
-}
-function removeFav(idx) {
-    state.favs.splice(idx, 1);
+function saveEdit() {
+    state.favs[state.pendingActionIndex] = {
+        n: document.getElementById('edit-name-input').value,
+        h: document.getElementById('edit-hex-input').value,
+        man: document.getElementById('edit-manuf-input').value,
+        e: document.getElementById('edit-end-input').value,
+        pearl: document.getElementById('edit-pearl-input').value,
+        notes: document.getElementById('edit-note-input').value
+    };
     localStorage.setItem('gta_pwa_favs_v2', JSON.stringify(state.favs));
+    closeModal('edit-modal');
     renderSaved();
+    toast("Color Updated!");
 }
 
+/* --- BACKUP & RESTORE --- */
+function exportFavs(){
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.favs));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", "gta_crew_colors_backup.json");
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+}
+
+function importFavs(){
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.readAsText(file,'UTF-8');
+        reader.onload = readerEvent => {
+            try {
+                const content = JSON.parse(readerEvent.target.result);
+                if(Array.isArray(content)){
+                    state.favs = content;
+                    localStorage.setItem('gta_pwa_favs_v2', JSON.stringify(state.favs));
+                    renderSaved();
+                    toast("Backup Restored!");
+                } else alert("Invalid file format");
+            } catch(e){ alert("Error reading file"); }
+        }
+    }
+    input.click();
+}
+
+/* --- ACTIONS --- */
+function copyHex(){
+    const fullCode = state.hex + (state.endCode || "");
+    navigator.clipboard.writeText(fullCode).then(()=>toast(`Copied: ${fullCode}`)); 
+}
+function copyTrueBlack(){ navigator.clipboard.writeText("#000000AA").then(()=>toast("Copied True Black")); }
+function toast(msg){ const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000); }
+
+// SAVE LOGIC
+function openSaveModal() {
+    if(state.favs.some(f=>f.h===state.hex)) { toast("Already Saved"); return; }
+    document.getElementById('save-name-input').value = "";
+    document.getElementById('save-manuf-input').value = "";
+    document.getElementById('save-end-input').value = state.endCode || "";
+    document.getElementById('save-pearl-input').value = "";
+    document.getElementById('save-note-input').value = "";
+    document.getElementById('save-modal').classList.add('open');
+}
+
+function confirmSave() {
+    const name = document.getElementById('save-name-input').value || state.name;
+    const manuf = document.getElementById('save-manuf-input').value || "Custom";
+    const end = document.getElementById('save-end-input').value || "";
+    const pearl = document.getElementById('save-pearl-input').value || "-";
+    const note = document.getElementById('save-note-input').value || "";
+    
+    state.favs.push({h:state.hex, n:name, e:end, notes:note, man:manuf, pearl:pearl});
+    localStorage.setItem('gta_pwa_favs_v2', JSON.stringify(state.favs));
+    closeModal('save-modal');
+    toast("Saved!");
+}
+
+function renderSaved(){
+    const g=document.getElementById('saved-grid'); 
+    g.innerHTML="";
+    const term = document.getElementById('saved-search').value.toLowerCase();
+    
+    const list = state.favs.filter(c => c.n.toLowerCase().includes(term));
+    document.getElementById('empty-msg').style.display = list.length ? 'none':'block';
+
+    list.forEach((c,i)=>{
+        const el=document.createElement('div'); el.className='swatch';
+        el.innerHTML=`
+            <div class="swatch-color" style="background:${c.h}" onclick="loadColor('${c.h}','${c.n}','${c.e}')">
+                 <div class="swatch-manuf">${c.man || "Custom"}</div>
+            </div>
+            <div class="swatch-detail-btn" onclick="openDetail(this)">🔍</div>
+            <div class="swatch-meta" onclick="loadColor('${c.h}','${c.n}','${c.e}')">
+                <b>${c.n}</b>
+                <span class="meta-hex">${c.h}${c.e||""}</span>
+            </div>`;
+        
+        // Pass index and flag to allow deletion from modal
+        const modalData = { 
+            name: c.n, hex: c.h, end: c.e, notes: c.notes, 
+            man: c.man, credit: "You", pearl: c.pearl, img: "",
+            isSaved: true, index: i 
+        };
+        el.dataset.json = JSON.stringify(modalData);
+        g.appendChild(el);
+    });
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function toggleGuide(h){ h.nextElementSibling.classList.toggle('open'); }
 </script>
 </body>
 </html>
