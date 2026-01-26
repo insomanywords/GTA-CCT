@@ -143,7 +143,7 @@
             gap: 20px;
             align-items: start;
         }
-        #mini-preview-container { display: none !important; }
+        /* Fixed: Removed hidden rule for mini-preview */
     }
 
     .page { display: none; animation: fadeIn 0.3s ease; max-width: 1000px; margin: 0 auto; }
@@ -460,17 +460,8 @@
                     <button class="btn btn-sec" onclick="copyShareLink()">SHARE 🔗</button>
                     <button class="btn btn-sec" onclick="openSaveModal()">SAVE ⭐</button>
                 </div>
-            </div>
-
-            <div class="card">
-                <h2>Color Mixer</h2>
                 
-                <div class="mixer-toggles">
-                    <button class="btn-small active" id="mode-rgb" onclick="setMixerMode('rgb')">RGB</button>
-                    <button class="btn-small" id="mode-hsl" onclick="setMixerMode('hsl')">HSL</button>
-                </div>
-                
-                <div class="btn-grid" style="margin-bottom: 20px;">
+                <div class="btn-grid" style="margin-top: 15px;">
                     <div class="input-group" style="margin-bottom:0;">
                         <label>Texture Preview</label>
                         <select id="texture-select" onchange="updateTexture()">
@@ -485,16 +476,25 @@
                          <select id="pearl-select" onchange="updatePearl()"></select>
                     </div>
                 </div>
+            </div>
 
-                <div id="mini-preview-container">
-                    <div class="slider-label"><span>Live Preview (Tap to Apply)</span></div>
-                    <div id="mini-swatch" class="mini-swatch" onclick="applyPreview()">TAP TO APPLY</div>
+            <div class="card">
+                <h2>Color Mixer</h2>
+                
+                <div class="mixer-toggles">
+                    <button class="btn-small active" id="mode-rgb" onclick="setMixerMode('rgb')">RGB</button>
+                    <button class="btn-small" id="mode-hsl" onclick="setMixerMode('hsl')">HSL</button>
                 </div>
-
+                
                 <div class="input-row">
                     <input type="text" id="hex-input" value="#000000" maxlength="9" oninput="updateFromHex(this.value)">
                     <button class="btn btn-sec btn-icon" onclick="document.getElementById('img-upload').click()">📷</button>
                     <input type="file" id="img-upload" accept="image/*" style="display:none" onchange="handleImageUpload(this)">
+                </div>
+
+                <div id="mini-preview-container">
+                    <div class="slider-label"><span>Live Preview (Tap to Apply)</span></div>
+                    <div id="mini-swatch" class="mini-swatch" onclick="applyPreview()">TAP TO APPLY</div>
                 </div>
 
                 <div id="sliders-rgb">
@@ -527,9 +527,18 @@
                     </div>
                 </div>
                 
-                <div class="slider-wrap" style="margin-top:20px; border-top:1px solid #333; padding-top:15px;">
-                     <div class="slider-label"><span>Alpha (Transparency)</span><span id="val-a">255</span></div>
-                     <input type="range" id="range-a" min="0" max="255" value="255" style="--thumb-color: #aaa" oninput="updateAlpha()">
+                <div class="input-group" style="margin-top:20px; border-top:1px solid #333; padding-top:15px;">
+                    <label style="display:flex; justify-content:space-between;">
+                        <span>Alpha / Transparency</span>
+                        <span id="val-a" style="color:var(--accent);">255</span>
+                    </label>
+                    <div class="filter-chips" style="justify-content: space-between; gap: 5px;">
+                        <div class="chip" onclick="setAlpha(0, '00')" id="btn-a-00">00</div>
+                        <div class="chip" onclick="setAlpha(85, '55')" id="btn-a-55">55</div>
+                        <div class="chip active" onclick="setAlpha(170, 'AA')" id="btn-a-AA">AA</div>
+                        <div class="chip" onclick="setAlpha(238, 'EE')" id="btn-a-EE">EE</div>
+                        <div class="chip" onclick="setAlpha(255, '')" id="btn-a-FF">FF</div>
+                    </div>
                 </div>
 
                 <div class="random-row">
@@ -649,7 +658,7 @@
                     2. Bookmark this page, then Edit the bookmark.<br>
                     3. Rename it to <b>"Inject"</b> and paste the code into the URL field.<br>
                     4. Go to Social Club "Edit Crew" page.<br>
-                    5. Tap the address bar, type <b>"Inject"</b>, and tap the bookmark (star icon) that appears in suggestions.
+                    5. Tap the address address bar, type <b>"Inject"</b>, and tap the bookmark (star icon) that appears in suggestions.
                 </p>
 
                 <h3 style="margin-top:25px;">2. Neon Generator</h3>
@@ -681,23 +690,33 @@
                 <h2>About</h2>
                 <p>The ultimate utility for customizing vehicle colors in GTA Online. Created by <b style="color:var(--accent)">ArtfulTwo79049</b>.</p>
                 
+                <p style="font-size: 0.85rem; margin-top: 10px; border-top: 1px solid #333; padding-top: 10px;">
+                    <b>OEM Library Credit:</b> Special thanks to <b>DCA (Digital Car Addicts)</b> for curating the massive database of real-world replica colors. 
+                    <br><a href="https://docs.google.com/spreadsheets/d/1orhiEtiwe3uxTZKAG7ZosKKSKRzYihyU2DoBQe6aPcQ/edit" target="_blank" style="color:var(--accent); text-decoration:none;">View Source Spreadsheet 🔗</a>
+                </p>
+
                 <h3>Features</h3>
-                <ul>
-                    <li><b>Hex Editor:</b> Fine-tune RGB/HSL and Alpha (Transparency) values.</li>
-                    <li><b>Visualizer:</b> Real-time preview with Gloss, Matte, Metal, and Chrome simulation.</li>
-                    <li><b>OEM Library:</b> 1000+ Real world paint codes.</li>
-                    <li><b>Tools:</b> "Silent Injector" for bypassing Social Club validation.</li>
-                    <li><b>PWA:</b> Installable on iOS/Android as a native app.</li>
+                <ul style="line-height: 1.8;">
+                    <li><b>Advanced Mixer:</b> Fine-tune RGB, HSL, and Alpha (Transparency) values.</li>
+                    <li><b>Visualizer:</b> Realistic simulation of Gloss, Matte, Metals, and Chrome textures with Pearlescent overlays.</li>
+                    <li><b>OEM Library:</b> Searchable access to 1000+ real-world paint codes (Ferrari, Porsche, BMW, etc.).</li>
+                    <li><b>Build Manager:</b> Save your favorite colors with details like manufacturer, pearl, secondary, and wheel colors.</li>
+                    <li><b>Tools:</b> Includes a "Silent Injector" script for mobile users, Neon Generator, and True Black helper.</li>
+                    <li><b>Full Screen Mode:</b> Compare colors directly against your TV screen.</li>
+                    <li><b>PWA:</b> Installs as a native app on iOS and Android (offline capable).</li>
                 </ul>
 
-                <h3>How To Use</h3>
-                <ul>
-                    <li>1. Create a color in the Editor.</li>
-                    <li>2. Copy the Hex code (or use the Injector tool).</li>
-                    <li>3. Go to Social Club > Edit Crew.</li>
-                    <li>4. Use the "Inject" bookmarklet to set the color securely.</li>
-                    <li>5. Save Crew and restart your game.</li>
-                </ul>
+                <h3>How To Apply Colors</h3>
+                <ol style="padding-left: 20px; line-height: 1.6; color:#ccc; font-size:0.9rem;">
+                    <li>Create or Select a color in this tool.</li>
+                    <li>Tap <b>COPY HEX</b> (e.g., <code>#FF0000AA</code>).</li>
+                    <li>Go to the <a href="https://socialclub.rockstargames.com/crews" target="_blank" style="color:var(--accent)">Rockstar Social Club</a> "Edit Crew" page.</li>
+                    <li><b>Desktop:</b> Right-click the color box > "Inspect" > Paste hex into the value field.</li>
+                    <li><b>Mobile:</b> Copy the "Injector Script" from the Tools tab, create a bookmark, and run it on the Social Club page.</li>
+                    <li>Click "Save Crew" on Social Club.</li>
+                    <li>Restart GTA Online (or swap characters) to refresh crew data.</li>
+                    <li>Go to Los Santos Customs > Respray > Crew Color.</li>
+                </ol>
 
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
             </div>
@@ -721,6 +740,7 @@
             <div class="input-group"><label>End Code</label><input type="text" id="save-end-input"></div>
         </div>
         <div class="input-group"><label>Notes</label><textarea id="save-note-input"></textarea></div>
+        <input type="hidden" id="save-hex-storage">
         <button class="btn btn-primary" style="margin-top:15px;" onclick="confirmSave()">Save Build</button>
     </div>
 </div>
@@ -761,12 +781,11 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v8.9</h2>
+        <h2>Change Log v9.5</h2>
         <ul>
-            <li><b>New Guides:</b> Added "4D" Chrome, True Black, and Next-Gen Chameleon glitches to the Guides tab.</li>
-            <li><b>About Page:</b> Updated with full feature list and detailed instructions.</li>
-            <li><b>Visual Fixes:</b> Gloss overlays added to all swatches.</li>
-            <li><b>Bug Fixes:</b> Alpha slider updates preview, Fullscreen overlay supports textures.</li>
+            <li><b>UI Fix:</b> Live Preview Swatch now visible on Desktop.</li>
+            <li><b>Feature:</b> Quick-Select Alpha Buttons (00, 55, AA, EE, FF).</li>
+            <li><b>Feature:</b> Auto-selects active Alpha button when loading saved colors.</li>
         </ul>
     </div>
 </div>
@@ -797,6 +816,7 @@
 
         <div class="btn-grid-3">
             <button class="btn btn-primary" id="modal-load-btn">Load</button>
+            <button class="btn btn-sec" id="modal-save-btn" style="display:none;">Save</button>
             <button class="btn btn-sec" id="modal-edit-btn" style="display:none;" onclick="openEditModal()">Edit</button>
             <button class="btn btn-danger" id="modal-delete-btn" style="display:none;">Delete</button>
         </div>
@@ -841,13 +861,13 @@ const FALLBACK_LIB=[{man:"Ferrari",name:"Rosso Corsa",hex:"#D40000",end:"",pearl
 
 // v8.6 State Separation
 let state = {
-    r:0, g:0, b:0, h:0, s:0, l:0, a:255, hex:"#000000", endCode:"", name:"Black",
+    r:0, g:0, b:0, h:0, s:0, l:0, a:170, hex:"#000000", endCode:"AA", name:"Black",
     favs: [], library: [], filterCat:'All', filterText:'', pendingActionIndex: -1, loadedInfo: {},
     history: [], mixerMode: 'rgb'
 };
 
 // "Committed" State for Main Visualizer & Buttons
-let displayed = { hex: "#000000", end: "", name: "Black" };
+let displayed = { hex: "#000000", end: "AA", name: "Black" };
 
 /* --- INIT --- */
 (function(){
@@ -895,7 +915,8 @@ function updateFromRGB(){
     const hex = "#" + ((1 << 24) + (state.r << 16) + (state.g << 8) + state.b).toString(16).slice(1).toUpperCase();
     state.hex = hex;
     state.name = "Custom Mix"; 
-    updateEndCodeFromAlpha();
+    // updateEndCodeFromAlpha();
+    syncAll();
 }
 
 function updateFromHSL(){
@@ -907,17 +928,20 @@ function updateFromHSL(){
     const hex = "#" + ((1 << 24) + (state.r << 16) + (state.g << 8) + state.b).toString(16).slice(1).toUpperCase();
     state.hex = hex;
     state.name = "Custom HSL"; 
-    updateEndCodeFromAlpha();
+    // updateEndCodeFromAlpha();
+    syncAll();
 }
 
-function updateAlpha(){
-    state.a = parseInt(document.getElementById('range-a').value);
-    updateEndCodeFromAlpha();
-}
-
-function updateEndCodeFromAlpha(){
-    if(state.a >= 255) state.endCode = "";
-    else state.endCode = state.a.toString(16).toUpperCase().padStart(2, '0');
+// NEW: Button Logic for Alpha
+function setAlpha(val, code) {
+    state.a = val;
+    state.endCode = code;
+    
+    // Update Active Class
+    document.querySelectorAll('[id^="btn-a-"]').forEach(b => b.classList.remove('active'));
+    let btnId = 'btn-a-' + (code || 'FF');
+    if(document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
+    
     syncAll();
 }
 
@@ -929,7 +953,7 @@ function updateFromHex(val){
         state.g = parseInt(state.hex.slice(3,5),16);
         state.b = parseInt(state.hex.slice(5,7),16);
         state.name = "Custom Hex"; 
-        state.a = 255; state.endCode = "";
+        // Keep current Alpha when editing Hex manually
         syncAll(false);
     }
 }
@@ -944,20 +968,44 @@ function syncAll(updateInp=true){
     document.getElementById('range-h').value = Math.round(hsl[0]*360); document.getElementById('val-h').innerText = Math.round(hsl[0]*360);
     document.getElementById('range-s').value = Math.round(hsl[1]*100); document.getElementById('val-s').innerText = Math.round(hsl[1]*100) + '%';
     document.getElementById('range-l').value = Math.round(hsl[2]*100); document.getElementById('val-l').innerText = Math.round(hsl[2]*100) + '%';
-    document.getElementById('range-a').value = state.a; document.getElementById('val-a').innerText = state.a;
+    
+    // Update Alpha Display Text
+    document.getElementById('val-a').innerText = state.a;
 
     // Always update Input & Mini Preview
     if(updateInp) document.getElementById('hex-input').value = state.hex;
     // FIX: Apply alpha to mini swatch background
     document.getElementById('mini-swatch').style.backgroundColor = state.hex + state.endCode;
     
-    // v8.6: Only auto-update main visualizer on Desktop
-    if (window.innerWidth >= 900) {
+    // Desktop only: Auto-apply
+    /* if (window.innerWidth >= 900) {
         applyPreview();
-    }
+    } */
+
+    // v9.4: Handle alpha button highlighting automatically if loading from library
+    document.querySelectorAll('[id^="btn-a-"]').forEach(b => b.classList.remove('active'));
+    let btnId = 'btn-a-' + (state.endCode || 'FF');
+    if(document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
 
     renderHarmonies();
     addToHistory(state.hex);
+}
+
+// Preview color without changing 'displayed' (Mobile)
+function previewColor(hex, name) {
+    // 1. Update State
+    if(!hex.startsWith('#')) hex='#'+hex;
+    if(/^#[0-9A-F]{6}$/i.test(hex)){
+        state.hex = hex.toUpperCase();
+        state.r = parseInt(state.hex.slice(1,3),16);
+        state.g = parseInt(state.hex.slice(3,5),16);
+        state.b = parseInt(state.hex.slice(5,7),16);
+        state.name = name || "Preview";
+        // state.a = 255; state.endCode = ""; // Keep Alpha
+        
+        // 2. Sync UI (Sliders, Mini Preview)
+        syncAll(true);
+    }
 }
 
 // v8.6: Commit draft state to main visualizer
@@ -1030,7 +1078,7 @@ function smartRandom(type) {
     const hex = "#" + ((1 << 24) + (state.r << 16) + (state.g << 8) + state.b).toString(16).slice(1).toUpperCase();
     state.hex = hex;
     state.name = type.charAt(0).toUpperCase() + type.slice(1) + " Random";
-    state.a = 255; state.endCode = "";
+    // state.a = 255; state.endCode = "";
     syncAll();
 }
 
@@ -1047,7 +1095,7 @@ function renderHarmonies() {
         el.className = 'harmony-swatch';
         el.style.backgroundColor = hex;
         el.title = shift.n;
-        el.onclick = () => loadColor(hex, shift.n + " Harmony");
+        el.onclick = () => previewColor(hex, shift.n + " Harmony");
         grid.appendChild(el);
     });
 }
@@ -1062,7 +1110,7 @@ function addToHistory(hex) {
         const el = document.createElement('div');
         el.className = 'hist-swatch';
         el.style.backgroundColor = h;
-        el.onclick = () => loadColor(h, "History");
+        el.onclick = () => previewColor(h, "History");
         grid.appendChild(el);
     });
 }
@@ -1137,13 +1185,14 @@ function openSaveModal() {
     document.getElementById('save-sec-input').value = info.sec || "";
     document.getElementById('save-wheel-input').value = info.wheel || "";
     document.getElementById('save-note-input').value = info.notes || "";
+    document.getElementById('save-hex-storage').value = displayed.hex;
     document.getElementById('save-modal').classList.add('open');
 }
 
 function confirmSave() {
-    // Uses DISPLAYED state
+    const saveHex = document.getElementById('save-hex-storage').value || displayed.hex;
     state.favs.push({
-        h: displayed.hex, 
+        h: saveHex, 
         n: document.getElementById('save-name-input').value || displayed.name,
         man: document.getElementById('save-manuf-input').value || "Custom",
         e: document.getElementById('save-end-input').value,
@@ -1289,9 +1338,11 @@ function openDetail(btn){
 
     const delBtn = document.getElementById('modal-delete-btn');
     const editBtn = document.getElementById('modal-edit-btn');
+    const saveBtn = document.getElementById('modal-save-btn'); // v9.0
+
     if (data.isSaved) {
         state.pendingActionIndex = data.index;
-        delBtn.style.display = 'block'; editBtn.style.display = 'block';
+        delBtn.style.display = 'block'; editBtn.style.display = 'block'; saveBtn.style.display = 'none'; // Hide Save if Saved
         document.getElementById('confirm-delete-btn').onclick = () => {
             state.favs.splice(state.pendingActionIndex, 1);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favs));
@@ -1300,7 +1351,20 @@ function openDetail(btn){
         delBtn.onclick = () => { closeModal('detail-modal'); document.getElementById('delete-modal').classList.add('open'); };
         editBtn.onclick = () => openEditModal();
     } else {
-        delBtn.style.display = 'none'; editBtn.style.display = 'none';
+        delBtn.style.display = 'none'; editBtn.style.display = 'none'; saveBtn.style.display = 'block'; // Show Save if Library
+        // v9.0: Bind Save Logic
+        saveBtn.onclick = () => {
+            closeModal('detail-modal');
+            document.getElementById('save-name-input').value = data.name;
+            document.getElementById('save-manuf-input').value = data.man;
+            document.getElementById('save-end-input').value = data.end || "";
+            document.getElementById('save-pearl-input').value = data.pearl || "";
+            document.getElementById('save-sec-input').value = data.sec || "";
+            document.getElementById('save-wheel-input').value = data.wheel || "";
+            document.getElementById('save-note-input').value = data.notes || "";
+            document.getElementById('save-hex-storage').value = data.hex; // Store Hex
+            document.getElementById('save-modal').classList.add('open');
+        };
     }
     document.getElementById('detail-modal').classList.add('open');
 }
