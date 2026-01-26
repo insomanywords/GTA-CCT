@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Ultimate GTA Crew Color Tool">
 <title>GTA Crew Color Tool</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23FCAF17'/%3E%3Cpath fill='%23000000' d='M336 336c-19.1 19.1-45.5 32-75.3 32-58.9 0-106.7-47.8-106.7-106.7S201.8 154.7 260.7 154.7c29.8 0 56.2 12.9 75.3 32l50.3-50.3C353.4 103.5 309.4 83.3 260.7 83.3 162.2 83.3 83.3 162.2 83.3 260.7S162.2 438 260.7 438c48.7 0 92.7-20.2 125.6-53.1L336 336z'/%3E%3C/svg%3E" type="image/svg+xml">
 <link rel="apple-touch-icon" href="https://img.icons8.com/color/100/grand-theft-auto-v.png">
-<link rel="icon" type="image/png" href="https://img.icons8.com/color/48/grand-theft-auto-v.png">
 
 <style>
     :root {
@@ -63,9 +63,17 @@
             padding: 30px 20px;
         }
         .nav-logo { 
-            font-size: 1.4rem; font-weight: 900; margin-bottom: 40px; 
-            color: var(--accent); letter-spacing: 0.5px; line-height: 1.3;
+            margin-bottom: 40px; 
+            display: flex; flex-direction: column; align-items: flex-start;
         }
+        /* Logo Styling */
+        .logo-icon svg { width: 55px; height: 55px; margin-bottom: 12px; }
+        .logo-text { 
+            font-size: 1.1rem; font-weight: 900; letter-spacing: 0.5px; 
+            line-height: 1.1; color: #fff; text-transform: uppercase; 
+        }
+        .logo-text span { color: var(--accent); }
+        
         .nav-item {
             display: flex; align-items: center; gap: 15px;
             padding: 15px; margin-bottom: 5px;
@@ -135,7 +143,7 @@
         }
     }
     
-    /* --- SIDE BY SIDE EDITOR LAYOUT (Desktop Fix) --- */
+    /* --- SIDE BY SIDE EDITOR LAYOUT --- */
     @media (min-width: 900px) {
         #page-editor.active {
             display: grid;
@@ -143,7 +151,6 @@
             gap: 20px;
             align-items: start;
         }
-        /* Fixed: Removed hidden rule for mini-preview */
     }
 
     .page { display: none; animation: fadeIn 0.3s ease; max-width: 1000px; margin: 0 auto; }
@@ -295,15 +302,35 @@
         background: linear-gradient(125deg, rgba(255,255,255,0.15) 0%, transparent 60%);
         pointer-events: none; border-radius: 8px;
     }
+    
+    /* --- Chips Re-Architecture (Fixed Overflow) --- */
+    .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
+    
+    /* Default Chip (Library - Horizontal Flow) */
+    .chip { 
+        padding: 8px 16px; background: #222; 
+        border-radius: 20px; font-size: 0.85rem; 
+        cursor: pointer; border: 1px solid #333;
+        display: inline-flex; align-items: center; justify-content: center;
+        white-space: nowrap; flex-shrink: 0;
+    }
+    .chip.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+    /* Specific Alpha Chip (Stacked) */
+    .chip-alpha {
+        flex-direction: column;
+        border-radius: 12px;
+        min-width: 50px;
+        line-height: 1.2;
+        padding: 6px 12px;
+    }
+    .chip-sub { font-size: 0.65rem; opacity: 0.7; }
+    .chip.active .chip-sub { opacity: 0.8; font-weight: bold; }
+
 
     /* Tools */
     .bookmark-btn { display: block; background: #333; color: #fff; padding: 15px; text-align: center; border-radius: 8px; text-decoration: none; border: 1px dashed #666; margin-top: 10px; font-weight: bold; cursor: grab; }
     .bookmark-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    /* Library */
-    .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; -webkit-overflow-scrolling: touch; }
-    .chip { padding: 6px 12px; background: #222; border-radius: 20px; font-size: 0.8rem; white-space: nowrap; cursor: pointer; border: 1px solid #333; }
-    .chip.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
     .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
     .swatch {
@@ -329,12 +356,15 @@
         border-bottom-right-radius: 6px; 
         backdrop-filter: blur(4px); z-index: 2;
     }
+    
+    /* Enlarged Detail Button */
     .swatch-detail-btn {
         position: absolute; top: 5px; right: 5px;
-        width: 24px; height: 24px; border-radius: 50%;
+        width: 34px; height: 34px; /* Enlarged from 24px */
+        border-radius: 50%;
         background: rgba(0,0,0,0.5); border: 1px solid #444;
         display: flex; align-items: center; justify-content: center;
-        color: white; font-size: 12px; transition: 0.2s;
+        color: white; font-size: 14px; transition: 0.2s;
         z-index: 10;
     }
     .swatch-detail-btn:hover { background: var(--accent); color: black; }
@@ -433,7 +463,16 @@
     <div class="mobile-header">GTA CREW COLOR TOOL</div>
 
     <nav class="nav-container">
-        <div class="nav-logo">GTA CREW COLOR TOOL</div>
+        <div class="nav-logo">
+            <div class="logo-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <rect width="512" height="512" rx="100" fill="#FCAF17"/>
+                    <path fill="#000000" d="M336 336c-19.1 19.1-45.5 32-75.3 32-58.9 0-106.7-47.8-106.7-106.7S201.8 154.7 260.7 154.7c29.8 0 56.2 12.9 75.3 32l50.3-50.3C353.4 103.5 309.4 83.3 260.7 83.3 162.2 83.3 83.3 162.2 83.3 260.7S162.2 438 260.7 438c48.7 0 92.7-20.2 125.6-53.1L336 336z"/>
+                </svg>
+            </div>
+            <div class="logo-text">GTA<br>CREW COLOR<br><span>TOOL</span></div>
+        </div>
+
         <div class="nav-item active" onclick="nav('editor', this)"><div class="nav-icon">🎨</div><div class="nav-label">Editor</div></div>
         <div class="nav-item" onclick="nav('library', this)"><div class="nav-icon">📚</div><div class="nav-label">Library</div></div>
         <div class="nav-item" onclick="nav('guides', this)"><div class="nav-icon">📖</div><div class="nav-label">Glitches</div></div>
@@ -533,11 +572,10 @@
                         <span id="val-a" style="color:var(--accent);">255</span>
                     </label>
                     <div class="filter-chips" style="justify-content: space-between; gap: 5px;">
-                        <div class="chip" onclick="setAlpha(0, '00')" id="btn-a-00">00</div>
-                        <div class="chip" onclick="setAlpha(85, '55')" id="btn-a-55">55</div>
-                        <div class="chip active" onclick="setAlpha(170, 'AA')" id="btn-a-AA">AA</div>
-                        <div class="chip" onclick="setAlpha(238, 'EE')" id="btn-a-EE">EE</div>
-                        <div class="chip" onclick="setAlpha(255, '')" id="btn-a-FF">FF</div>
+                        <div class="chip chip-alpha" onclick="setAlpha(85, '55')" id="btn-a-55">55<span class="chip-sub">33%</span></div>
+                        <div class="chip chip-alpha active" onclick="setAlpha(170, 'AA')" id="btn-a-AA">AA<span class="chip-sub">67%</span></div>
+                        <div class="chip chip-alpha" onclick="setAlpha(238, 'EE')" id="btn-a-EE">EE<span class="chip-sub">93%</span></div>
+                        <div class="chip chip-alpha" onclick="setAlpha(255, '')" id="btn-a-FF">FF<span class="chip-sub">100%</span></div>
                     </div>
                 </div>
 
@@ -781,11 +819,11 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v9.5</h2>
+        <h2>Change Log v10.1</h2>
         <ul>
-            <li><b>UI Fix:</b> Live Preview Swatch now visible on Desktop.</li>
-            <li><b>Feature:</b> Quick-Select Alpha Buttons (00, 55, AA, EE, FF).</li>
-            <li><b>Feature:</b> Auto-selects active Alpha button when loading saved colors.</li>
+            <li><b>UI Fix:</b> Library category chips no longer overflow text.</li>
+            <li><b>UI Update:</b> Enlarged detail buttons on color swatches for better mobile touch.</li>
+            <li><b>Branding:</b> Updated App Icon and Favicon.</li>
         </ul>
     </div>
 </div>
