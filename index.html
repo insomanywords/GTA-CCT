@@ -699,13 +699,22 @@
                     5. Tap the address address bar, type <b>"Inject"</b>, and tap the bookmark (star icon) that appears in suggestions.
                 </p>
 
-                <h3 style="margin-top:25px;">2. Neon Generator</h3>
+                <h3 style="margin-top:25px;">2. Quick Edit Shortcut</h3>
+                <p>Enter your Crew Name to create a direct link to the management page.</p>
+                <div class="input-group">
+                    <label>Crew Name</label>
+                    <input type="text" id="crew-name-input" placeholder="e.g. My Awesome Crew" oninput="saveCrewName(this.value)">
+                </div>
+                <button class="btn btn-primary" onclick="openSocialClub()">Go to Edit Crew Page</button>
+
+                <h3 style="margin-top:25px;">3. Neon Generator</h3>
                 <p>Boosts the brightness of your current mix to "Modded/Neon" levels.</p>
                 <button class="btn btn-primary" onclick="makeNeon()">Make Current Color Neon</button>
 
-                <h3 style="margin-top:25px;">3. True Black</h3>
+                <h3 style="margin-top:25px;">4. True Black</h3>
                 <p>Instant copy for the invisible crew color glitch.</p>
                 <button class="btn btn-sec" onclick="copyTrueBlack()">Copy #000000AA</button>
+
             </div>
         </div>
 
@@ -917,6 +926,10 @@ let displayed = { hex: "#000000", end: "AA", name: "Black" };
         const oldData = localStorage.getItem('gta_pwa_favs_v3');
         if(oldData) { state.favs = JSON.parse(oldData); localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favs)); }
     }
+    
+    // Load Saved Crew Name
+    const savedName = localStorage.getItem('gta_tool_crewname');
+    if(savedName) document.getElementById('crew-name-input').value = savedName;
 
     const params = new URLSearchParams(window.location.search);
     if(params.has('hex')){
@@ -935,6 +948,18 @@ let displayed = { hex: "#000000", end: "AA", name: "Black" };
     s.onerror=()=>{useFallback("Connection Failed")};
     document.body.appendChild(s);
 })();
+
+/* --- NEW TOOL FUNCTIONS --- */
+function saveCrewName(val){
+    localStorage.setItem('gta_tool_crewname', val);
+}
+
+function openSocialClub(){
+    const name = document.getElementById('crew-name-input').value.trim();
+    if(!name) { toast("Please enter a Crew Name"); return; }
+    const formatted = name.replace(/\s+/g, '_');
+    window.open(`https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`, '_blank');
+}
 
 /* --- CORE FUNCTIONS (RGB/HSL/ALPHA) --- */
 function setMixerMode(mode){
