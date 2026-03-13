@@ -234,6 +234,7 @@
         background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
         padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
         display: flex; flex-direction: column;
+        cursor: pointer;
     }
     .viz-hex { font-family: 'Courier New', monospace; color: var(--accent); font-weight: bold; font-size: 1.1rem; }
     .viz-name { font-size: 0.8rem; opacity: 0.9; margin-top: 2px; }
@@ -436,6 +437,16 @@
         z-index: 9999; display: none; cursor: pointer;
     }
 
+    /* Full Screen Image Overlay */
+    #img-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.95); z-index: 9999; display: none; 
+        justify-content: center; align-items: center; cursor: zoom-out;
+    }
+    #img-overlay img {
+        max-width: 95%; max-height: 95%; border-radius: 8px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
     /* Toast */
     .toast {
         position: fixed; bottom: calc(80px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(20px);
@@ -457,6 +468,10 @@
 <div id="fs-overlay" onclick="this.style.display='none'">
     <div id="fs-base" class="car-layer"></div>
     <div id="fs-pearl" class="car-layer"></div>
+</div>
+
+<div id="img-overlay" onclick="this.style.display='none'">
+    <img id="fs-img" src="">
 </div>
 
 <div id="app">
@@ -488,7 +503,7 @@
                 <div class="viz-box" id="visualizer-box" onclick="openFullscreenEditor()">
                     <div id="layer-base" class="car-layer"></div>
                     <div id="layer-pearl" class="car-layer"></div>
-                    <div class="viz-info">
+                    <div class="viz-info" onclick="openCurrentColorDetail(event)">
                         <div class="viz-hex" id="disp-hex">#000000</div>
                         <div class="viz-name" id="disp-name">Black</div>
                         <div class="safe-check" id="safe-check-indicator"></div>
@@ -604,7 +619,7 @@
                     <h2>OEM Color Library</h2>
                     <span id="lib-status" style="font-size:0.7rem; color:var(--text-dim);">Loading...</span>
                 </div>
-                <input type="text" placeholder="Search..." oninput="filterLibrary(this.value)" style="margin-bottom:15px; width:100%;">
+                <input type="text" placeholder="Search by name, manuf, or hex..." oninput="filterLibrary(this.value)" style="margin-bottom:15px; width:100%;">
                 
                 <div class="filter-chips" id="chip-container">
                     <div class="chip active" onclick="setFilter('All')">All</div>
@@ -721,7 +736,7 @@
         <div id="page-saved" class="page">
             <div class="card">
                 <h2>My Favorites</h2>
-                <input type="text" id="saved-search" placeholder="Search your saved colors..." oninput="renderSaved()" style="margin-bottom:15px; width:100%;">
+                <input type="text" id="saved-search" placeholder="Search by name or hex..." oninput="renderSaved()" style="margin-bottom:15px; width:100%;">
                 
                 <div class="btn-grid" style="margin-bottom:20px;">
                     <button class="btn btn-sec" onclick="exportFavs()">Backup (Export)</button>
@@ -828,11 +843,54 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log v10.1</h2>
+        <h2>Change Log (v10.4)</h2>
+        
+        <h3>v10.4</h3>
+        <ul>
+            <li><b>Search Update:</b> Added the ability to search for colors by Hex Code in both the OEM Library and Saved Colors.</li>
+        </ul>
+
+        <h3>v10.3</h3>
+        <ul>
+            <li><b>Feature:</b> Main Visualizer Info Box can now be clicked to view detailed info (if color is saved or in library).</li>
+            <li><b>Feature:</b> Vehicle images in the library detail card can now be clicked to enlarge.</li>
+        </ul>
+
+        <h3>v10.2</h3>
+        <ul>
+            <li><b>State Preservation:</b> Last applied color is saved to memory and restored on reload.</li>
+            <li><b>Tool Update:</b> Adjusted order of features in the Tools tab for better flow.</li>
+        </ul>
+
+        <h3>v10.1</h3>
         <ul>
             <li><b>UI Fix:</b> Library category chips no longer overflow text.</li>
-            <li><b>UI Update:</b> Enlarged detail buttons on color swatches for better mobile touch.</li>
-            <li><b>Branding:</b> Updated App Icon and Favicon.</li>
+            <li><b>UI Update:</b> Enlarged detail buttons on color swatches for easier tapping.</li>
+        </ul>
+
+        <h3>v10.0</h3>
+        <ul>
+            <li><b>Branding:</b> Updated logo and favicon to new "C in Gold Box" app-style icon.</li>
+            <li><b>UI Polish:</b> Stacked desktop logo text for better fit.</li>
+        </ul>
+
+        <h3>v9.5 - v9.9</h3>
+        <ul>
+            <li><b>Alpha UI:</b> Replaced alpha slider with quick-select buttons displaying percentages. Removed unnecessary '00' option.</li>
+            <li><b>About Page:</b> Added credits to DCA and expanded instructions.</li>
+        </ul>
+
+        <h3>v9.0 - v9.4</h3>
+        <ul>
+            <li><b>New Feature:</b> Save colors directly from the OEM Library.</li>
+            <li><b>Layout:</b> Moved Texture/Pearl options to main card, Live preview moved below Hex input.</li>
+            <li><b>Desktop UI:</b> Added Live Preview swatch to desktop.</li>
+        </ul>
+
+        <h3>v8.5 - v8.9</h3>
+        <ul>
+            <li><b>Guides:</b> Added new Glitches & Guides (Colored Chrome, Next Gen Chameleon).</li>
+            <li><b>Bug Fixes:</b> Matte + Pearl rendering, Fullscreen textures, Mobile draft preview separation, and Desktop overlapping fixes.</li>
         </ul>
     </div>
 </div>
@@ -846,7 +904,7 @@
         
         <div class="detail-img-box" id="detail-img-box">
             <div class="detail-placeholder">No Image Available</div>
-            <img id="modal-img" src="" alt="Preview">
+            <img id="modal-img" src="" alt="Preview" onclick="openFullscreenImage(this.src)" style="cursor: zoom-in;">
         </div>
 
         <div class="detail-row"><span class="detail-label">Manufacturer</span><span class="detail-val" id="modal-manuf">-</span></div>
@@ -935,6 +993,14 @@ let displayed = { hex: "#000000", end: "AA", name: "Black" };
     if(params.has('hex')){
         const h = params.get('hex'); const n = params.get('name');
         setTimeout(()=>loadColor('#'+h, n || 'Shared Color'), 100);
+    } else {
+        const lastColor = localStorage.getItem('gta_tool_last_color');
+        if(lastColor) {
+            try {
+                const parsed = JSON.parse(lastColor);
+                setTimeout(()=>loadColor(parsed.hex, parsed.name, parsed.end), 100);
+            } catch(e) {}
+        }
     }
 
     const pSelect=document.getElementById('pearl-select');
@@ -1087,6 +1153,8 @@ function applyPreview() {
     } else {
         safeCheck.innerHTML = '✅ Safe Color'; safeCheck.classList.remove('unsafe');
     }
+
+    localStorage.setItem('gta_tool_last_color', JSON.stringify({ hex: displayed.hex, end: displayed.end, name: displayed.name }));
 }
 
 /* --- MATH UTILS --- */
@@ -1328,6 +1396,86 @@ function openFullscreenEditor() {
     openFullscreenColor('editor');
 }
 
+function openFullscreenImage(src) {
+    document.getElementById('fs-img').src = src;
+    document.getElementById('img-overlay').style.display = 'flex';
+}
+
+/* --- CURRENT COLOR DETAIL --- */
+function openCurrentColorDetail(e) {
+    e.stopPropagation(); // Prevent opening fullscreen overlay
+    
+    let data = null;
+    let favIndex = state.favs.findIndex(c => c.h === displayed.hex && (c.e || "") === (displayed.end || ""));
+    if (favIndex > -1) {
+        let c = state.favs[favIndex];
+        data = { name: c.n, hex: c.h, end: c.e, notes: c.notes, man: c.man, credit: "You", pearl: c.pearl, sec: c.sec, wheel: c.wheel, img: "", isSaved: true, index: favIndex };
+    } else {
+        let libMatch = state.library.find(c => c.hex === displayed.hex && (c.end || "") === (displayed.end || ""));
+        if (libMatch) {
+            data = { ...libMatch, isSaved: false };
+        }
+    }
+
+    if (!data) {
+        return; // Not in library/saved, do nothing
+    }
+
+    document.getElementById('modal-title').innerText = data.name;
+    document.getElementById('modal-manuf').innerText = data.man || "Custom";
+    document.getElementById('modal-hex').innerText = data.hex;
+    const endEl = document.getElementById('modal-end'); if(endEl) endEl.innerText = data.end || ""; 
+    document.getElementById('modal-pearl').innerText = data.pearl || "-";
+    document.getElementById('modal-sec').innerText = data.sec || "-";
+    document.getElementById('modal-wheel').innerText = data.wheel || "-";
+    document.getElementById('modal-credit').innerText = data.credit || "User";
+    document.getElementById('modal-notes').innerText = data.notes || "-";
+    document.getElementById('modal-swatch').style.backgroundColor = data.hex;
+    
+    const img = document.getElementById('modal-img');
+    const ph = document.querySelector('.detail-placeholder');
+    const box = document.getElementById('detail-img-box');
+    img.style.display='none'; ph.style.display='block';
+    if(!data.img) box.style.display='none'; 
+    else {
+        box.style.display='flex';
+        if(data.img.startsWith('http')) { img.src = data.img; img.onload = function(){this.style.display='block'; ph.style.display='none'}; }
+    }
+
+    document.getElementById('modal-load-btn').onclick = () => { loadColor(data.hex, data.name, data.end, data); closeModal('detail-modal'); };
+
+    const delBtn = document.getElementById('modal-delete-btn');
+    const editBtn = document.getElementById('modal-edit-btn');
+    const saveBtn = document.getElementById('modal-save-btn');
+
+    if (data.isSaved) {
+        state.pendingActionIndex = data.index;
+        delBtn.style.display = 'block'; editBtn.style.display = 'block'; saveBtn.style.display = 'none';
+        document.getElementById('confirm-delete-btn').onclick = () => {
+            state.favs.splice(state.pendingActionIndex, 1);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favs));
+            closeModal('delete-modal'); renderSaved(); toast("Deleted");
+        };
+        delBtn.onclick = () => { closeModal('detail-modal'); document.getElementById('delete-modal').classList.add('open'); };
+        editBtn.onclick = () => openEditModal();
+    } else {
+        delBtn.style.display = 'none'; editBtn.style.display = 'none'; saveBtn.style.display = 'block';
+        saveBtn.onclick = () => {
+            closeModal('detail-modal');
+            document.getElementById('save-name-input').value = data.name;
+            document.getElementById('save-manuf-input').value = data.man;
+            document.getElementById('save-end-input').value = data.end || "";
+            document.getElementById('save-pearl-input').value = data.pearl || "";
+            document.getElementById('save-sec-input').value = data.sec || "";
+            document.getElementById('save-wheel-input').value = data.wheel || "";
+            document.getElementById('save-note-input').value = data.notes || "";
+            document.getElementById('save-hex-storage').value = data.hex;
+            document.getElementById('save-modal').classList.add('open');
+        };
+    }
+    document.getElementById('detail-modal').classList.add('open');
+}
+
 /* --- LIBRARY & DETAILS --- */
 window.onSheetLoad = function(json) {
     try {
@@ -1362,7 +1510,7 @@ function filterLibrary(txt){ state.filterText=txt.toLowerCase(); renderLibrary()
 
 function renderLibrary(){
     const g=document.getElementById('lib-grid'); g.innerHTML="";
-    state.library.filter(c=>(state.filterCat==='All'||c.man===state.filterCat) && (c.name.toLowerCase().includes(state.filterText)||c.man.toLowerCase().includes(state.filterText)))
+    state.library.filter(c=>(state.filterCat==='All'||c.man===state.filterCat) && (c.name.toLowerCase().includes(state.filterText)||c.man.toLowerCase().includes(state.filterText)||c.hex.toLowerCase().includes(state.filterText)))
     .forEach(c=>{
         const el=document.createElement('div'); el.className='swatch';
         el.innerHTML=`
@@ -1435,7 +1583,7 @@ function openDetail(btn){
 function renderSaved(){
     const g=document.getElementById('saved-grid'); g.innerHTML="";
     const term = document.getElementById('saved-search').value.toLowerCase();
-    const list = state.favs.filter(c => c.n.toLowerCase().includes(term));
+    const list = state.favs.filter(c => c.n.toLowerCase().includes(term) || c.h.toLowerCase().includes(term));
     document.getElementById('empty-msg').style.display = list.length ? 'none':'block';
 
     list.forEach((c,i)=>{
