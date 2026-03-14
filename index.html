@@ -843,7 +843,12 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.4)</h2>
+        <h2>Change Log (v10.5)</h2>
+
+        <h3>v10.5</h3>
+        <ul>
+            <li><b>Image Update:</b> Added vehicle image from OEM color library to saved colors detail card if hex code matches.</li>
+        </ul>
         
         <h3>v10.4</h3>
         <ul>
@@ -1409,7 +1414,10 @@ function openCurrentColorDetail(e) {
     let favIndex = state.favs.findIndex(c => c.h === displayed.hex && (c.e || "") === (displayed.end || ""));
     if (favIndex > -1) {
         let c = state.favs[favIndex];
-        data = { name: c.n, hex: c.h, end: c.e, notes: c.notes, man: c.man, credit: "You", pearl: c.pearl, sec: c.sec, wheel: c.wheel, img: "", isSaved: true, index: favIndex };
+        let matchImg = "";
+        let libMatch = state.library.find(x => x.hex === c.h);
+        if(libMatch) matchImg = libMatch.img;
+        data = { name: c.n, hex: c.h, end: c.e, notes: c.notes, man: c.man, credit: "You", pearl: c.pearl, sec: c.sec, wheel: c.wheel, img: matchImg, isSaved: true, index: favIndex };
     } else {
         let libMatch = state.library.find(c => c.hex === displayed.hex && (c.end || "") === (displayed.end || ""));
         if (libMatch) {
@@ -1587,12 +1595,15 @@ function renderSaved(){
     document.getElementById('empty-msg').style.display = list.length ? 'none':'block';
 
     list.forEach((c,i)=>{
+        let matchImg = "";
+        let libMatch = state.library.find(x => x.hex === c.h);
+        if(libMatch) matchImg = libMatch.img;
         const el=document.createElement('div'); el.className='swatch';
         el.innerHTML=`
             <div class="swatch-color" style="background:${c.h}" onclick="loadColor('${c.h}','${c.n}','${c.e}', {man:'${c.man}', pearl:'${c.pearl}', notes:'${c.notes}', sec:'${c.sec}', wheel:'${c.wheel}'})"><div class="swatch-manuf">${c.man}</div></div>
             <div class="swatch-detail-btn" onclick="openDetail(this)">🔍</div>
             <div class="swatch-meta" onclick="loadColor('${c.h}','${c.n}','${c.e}', {man:'${c.man}', pearl:'${c.pearl}', notes:'${c.notes}', sec:'${c.sec}', wheel:'${c.wheel}'})"><b>${c.n}</b><span class="meta-hex">${c.h}${c.e||""}</span></div>`;
-        const modalData = { name: c.n, hex: c.h, end: c.e, notes: c.notes, man: c.man, credit: "You", pearl: c.pearl, sec: c.sec, wheel: c.wheel, img: "", isSaved: true, index: i };
+        const modalData = { name: c.n, hex: c.h, end: c.e, notes: c.notes, man: c.man, credit: "You", pearl: c.pearl, sec: c.sec, wheel: c.wheel, img: matchImg, isSaved: true, index: i };
         el.dataset.json = JSON.stringify(modalData);
         g.appendChild(el);
     });
