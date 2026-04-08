@@ -631,6 +631,8 @@
                     <button class="btn btn-sec" style="font-size:0.8rem" onclick="smartRandom('pastel')">🌸 Pastel</button>
                 </div>
 
+                <button class="btn btn-primary" style="margin-top:10px; background: linear-gradient(135deg, #FCAF17 0%, #ff8c00 100%);" onclick="openCorrectionModal()">✨ Magic Correct for In-Game</button>
+
                 <div class="harmonies-box">
                     <div class="harmony-title">Suggested Secondaries</div>
                     <div class="harmony-grid" id="harmony-grid"></div>
@@ -794,6 +796,7 @@
                     <li><b>Visualizer:</b> Realistic simulation of Gloss, Matte, Metals, and Chrome textures with Pearlescent overlays.</li>
                     <li><b>Lighting Scenarios:</b> Toggle between Daylight, Nighttime, and Streetlight to see how colors react to different environments.</li>
                     <li><b>Engine Simulation:</b> Preview how colors will actually look in-game by simulating the RAGE engine's washout and brightness shift.</li>
+                    <li><b>Reverse Engine Correction:</b> Use the "Magic Correct" tool to calculate the exact hex code needed to counteract in-game washout and get your "Dream Color" on the streets of Los Santos.</li>
                     <li><b>OEM Library:</b> Searchable access to 1000+ real-world paint codes (Ferrari, Porsche, BMW, etc.).</li>
                     <li><b>Build Manager:</b> Save your favorite colors with details like manufacturer, pearl, secondary, and wheel colors.</li>
                     <li><b>Tools:</b> Includes a "Silent Injector" script for mobile users, Neon Generator, and True Black helper.</li>
@@ -876,7 +879,13 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.6)</h2>
+        <h2>Change Log (v10.7)</h2>
+
+        <h3>v10.7</h3>
+        <ul>
+            <li><b>New Feature:</b> Added "Reverse Engine Correction" (Magic Correct) tool to calculate the exact hex needed to compensate for in-game washout.</li>
+            <li><b>UI Update:</b> Added Magic Correction modal with result preview and quick-copy functionality.</li>
+        </ul>
 
         <h3>v10.6</h3>
         <ul>
@@ -970,6 +979,21 @@
             <button class="btn btn-sec" id="modal-edit-btn" style="display:none;" onclick="openEditModal()">Edit</button>
             <button class="btn btn-danger" id="modal-delete-btn" style="display:none;">Delete</button>
         </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="correction-modal">
+    <div class="modal">
+        <button class="close-modal" onclick="closeModal('correction-modal')">✕</button>
+        <h2 style="color:var(--accent)">Magic Correction</h2>
+        <p style="font-size:0.85rem; color:#aaa; margin-bottom:20px;">Use this code on Social Club to get your Dream Color in-game. This compensates for engine washout.</p>
+        
+        <div style="background:#111; border:1px solid #333; border-radius:12px; padding:20px; text-align:center; margin-bottom:20px;">
+            <div id="correction-swatch" style="width:60px; height:60px; border-radius:50%; margin:0 auto 15px auto; border:2px solid #fff; box-shadow:0 0 20px rgba(0,0,0,0.5);"></div>
+            <div id="correction-result" style="font-family:monospace; font-size:1.8rem; font-weight:bold; color:var(--accent); letter-spacing:2px;">#000000</div>
+        </div>
+
+        <button class="btn btn-primary" onclick="copyCorrection()">Copy Corrected Hex</button>
     </div>
 </div>
 
@@ -1338,6 +1362,31 @@ function simulateEngineRendering(hex) {
     
     const [nr, ng, nb] = hslToRgb(h, s, l);
     return "#" + ((1 << 24) + (nr << 16) + (ng << 8) + nb).toString(16).slice(1).toUpperCase();
+}
+
+function calculateCorrectionHex(dreamHex) {
+    const r = parseInt(dreamHex.slice(1, 3), 16);
+    const g = parseInt(dreamHex.slice(3, 5), 16);
+    const b = parseInt(dreamHex.slice(5, 7), 16);
+    let [h, s, l] = rgbToHsl(r, g, b);
+    
+    s = Math.min(1, s * 1.15); // Increase Saturation by 15%
+    l *= 0.85; // Decrease Lightness by 15%
+    
+    const [nr, ng, nb] = hslToRgb(h, s, l);
+    return "#" + ((1 << 24) + (nr << 16) + (ng << 8) + nb).toString(16).slice(1).toUpperCase();
+}
+
+function openCorrectionModal() {
+    const corrected = calculateCorrectionHex(state.hex);
+    document.getElementById('correction-result').innerText = corrected + state.endCode;
+    document.getElementById('correction-swatch').style.backgroundColor = corrected + state.endCode;
+    document.getElementById('correction-modal').classList.add('open');
+}
+
+function copyCorrection() {
+    const code = document.getElementById('correction-result').innerText;
+    navigator.clipboard.writeText(code).then(() => toast("Corrected Hex Copied: " + code));
 }
 
 function updateTexture(){
