@@ -198,21 +198,23 @@
     /* Lighting Controls */
     .lighting-controls {
         display: flex; gap: 8px; margin-top: 12px; justify-content: center;
+        flex-wrap: wrap;
     }
     
     /* Lighting Scenarios */
-    #visualizer-box.lighting-night { filter: brightness(0.5) contrast(1.2); }
-    #visualizer-box.lighting-night::after { 
+    #visualizer-box.lighting-night, #fs-overlay.lighting-night { filter: brightness(0.5) contrast(1.2); }
+    #visualizer-box.lighting-night::after, #fs-overlay.lighting-night::after { 
+        content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 6;
         background: linear-gradient(125deg, rgba(180, 200, 255, 0.15) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.5) 100%);
     }
 
-    #visualizer-box.lighting-street #lighting-overlay {
+    #visualizer-box.lighting-street #lighting-overlay, #fs-overlay.lighting-street #fs-lighting {
         position: absolute; inset: 0; z-index: 5; pointer-events: none;
         background: rgba(255, 160, 0, 0.25);
         mix-blend-mode: overlay;
     }
 
-    #visualizer-box.lighting-garage #lighting-overlay {
+    #visualizer-box.lighting-garage #lighting-overlay, #fs-overlay.lighting-garage #fs-lighting {
         position: absolute; inset: 0; z-index: 5; pointer-events: none;
         background: rgba(255, 255, 255, 0.1);
         mix-blend-mode: screen;
@@ -438,6 +440,7 @@
         overflow-y: auto; padding: 25px; position: relative;
         box-shadow: 0 10px 40px rgba(0,0,0,0.8);
     }
+    #changelog-modal .modal, #changelog-modal .modal * { user-select: text !important; -webkit-user-select: text !important; }
     .close-modal {
         position: absolute; top: 15px; right: 15px;
         background: #222; border: none; color: #fff;
@@ -539,6 +542,7 @@
 <div id="fs-overlay" onclick="this.style.display='none'">
     <div id="fs-base" class="car-layer"></div>
     <div id="fs-pearl" class="car-layer"></div>
+    <div id="fs-lighting" class="car-layer"></div>
 </div>
 
 <div id="img-overlay" onclick="this.style.display='none'">
@@ -578,17 +582,17 @@
                         <div class="safe-check" id="safe-check-indicator"></div>
                     </div>
                 </div>
-                <div class="lighting-controls">
+                <div class="btn-grid-3">
+                    <button class="btn btn-primary" onclick="copyHex()">COPY HEX</button>
+                    <button class="btn btn-sec" onclick="copyShareLink()">SHARE 🔗</button>
+                    <button class="btn btn-sec" onclick="openSaveModal()">SAVE ⭐</button>
+                </div>
+                <div class="lighting-controls" style="margin-top: 15px;">
                     <button class="btn-small active" id="light-none" onclick="setLighting('none')">None ⚪</button>
                     <button class="btn-small" id="light-day" onclick="setLighting('day')">Daylight ☀️</button>
                     <button class="btn-small" id="light-night" onclick="setLighting('night')">Nighttime 🌙</button>
                     <button class="btn-small" id="light-street" onclick="setLighting('street')">Streetlight 💡</button>
                     <button class="btn-small" id="light-garage" onclick="setLighting('garage')">Garage 🏠</button>
-                </div>
-                <div class="btn-grid-3">
-                    <button class="btn btn-primary" onclick="copyHex()">COPY HEX</button>
-                    <button class="btn btn-sec" onclick="copyShareLink()">SHARE 🔗</button>
-                    <button class="btn btn-sec" onclick="openSaveModal()">SAVE ⭐</button>
                 </div>
                 
                 <div class="btn-grid" style="margin-top: 15px;">
@@ -619,7 +623,7 @@
                 </div>
 
                 <div class="btn-grid" style="margin-top: 15px;">
-                    <button class="btn btn-sec" onclick="toggle3D()">Toggle 3D Preview 🏎️</button>
+                    <button class="btn btn-sec" onclick="toggle3D()">Toggle 3D Preview <span style="font-size: 1.3rem; margin-left: 4px; display: inline-block; transform: translateY(-5px);">🏎️</span></button>
                     <div class="input-group" style="margin-bottom:0;">
                         <select id="vehicle-type-select" onchange="changeVehicleType(this.value)">
                             <option value="Car">Elegy</option>
@@ -794,6 +798,22 @@
                     </div>
                 </div>
 
+                <div class="guide-item">
+                    <div class="guide-header" onclick="toggleGuide(this)">6. Chameleon + Crew Color <span>▼</span></div>
+                    <div class="guide-content">
+                        <b>Effect:</b> Unique color-shifting crew paint.<br><br>
+                        1. Go to LSC.<br>
+                        2. Respray > Primary > Chameleon.<br>
+                        3. Buy any Chameleon color.<br>
+                        4. Respray > Secondary > Chameleon.<br>
+                        5. Buy same Chameleon color as primary.<br>
+                        6. Respray > Primary > Crew.<br>
+                        7. Apply Crew color.<br>
+                        8. Leave LSC.<br><br>
+                        <i>Notes: Works best with darker crew colors.</i>
+                    </div>
+                </div>
+
             </div>
         </div>
         
@@ -865,18 +885,85 @@
                     <b>3D Model Credit:</b> <a href="https://skfb.ly/pwURW" target="_blank" style="color:inherit; text-decoration:underline;">"Nissan Skyline GTR-R33 Top Secret x Hugosilva"</a> by blakebella is licensed under <a href="http://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" style="color:inherit; text-decoration:underline;">CC Attribution-NonCommercial-NoDerivs</a>.
                 </p>
 
-                <h3>Features</h3>
-                <ul style="line-height: 1.8;">
-                    <li><b>3D Visualizer:</b> High-fidelity 3D preview featuring the <b>Annis Elegy RH8</b> with real-time material simulation (Gloss, Matte, Metal, Chrome).</li>
-                    <li><b>Advanced Mixer:</b> Fine-tune RGB, HSL, and Alpha (Transparency) values.</li>
-                    <li><b>Lighting Scenarios:</b> Toggle between None, Daylight, Nighttime, and Streetlight to see how colors react to different environments.</li>
-                    <li><b>Engine Simulation:</b> Preview how colors will actually look in-game by simulating the RAGE engine's washout and brightness shift.</li>
-                    <li><b>Reverse Engine Correction:</b> Use the "Magic Correct" tool to calculate the exact hex code needed to counteract in-game washout and get your "Dream Color" on the streets of Los Santos.</li>
-                    <li><b>OEM Library:</b> Searchable access to 1000+ real-world paint codes (Ferrari, Porsche, BMW, etc.).</li>
-                    <li><b>Build Manager:</b> Save your favorite colors with details like manufacturer, pearl, secondary, and wheel colors.</li>
-                    <li><b>Tools:</b> Includes a "Silent Injector" script for mobile users, Neon Generator, and True Black helper.</li>
-                    <li><b>Full Screen Mode:</b> Compare colors directly against your TV screen.</li>
-                    <li><b>PWA:</b> Installs as a native app on iOS and Android (offline capable).</li>
+                <h3>Features & Usage</h3>
+                <div class="guide-item">
+                    <div class="guide-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                        <span>3D Visualizer 🏎️</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="guide-content">
+                        High-fidelity 3D preview featuring the <b>Annis Elegy RH8</b> with real-time material simulation (Gloss, Matte, Metal, Chrome).
+                        <br><br>
+                        <b>How to use:</b> Drag to rotate the camera, pinch or scroll to zoom. Use the <b>Toggle 3D Preview</b> button to enable/disable the visualizer. You can also switch vehicle types (Elegy, Truck, Van) using the dropdown menu.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                        <span>Advanced Mixer 🎛️</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="guide-content">
+                        Fine-tune your colors using RGB, HSL, and Alpha (Transparency) sliders.
+                        <br><br>
+                        <b>How to use:</b> Adjust the sliders for precise control. Use the <b>Alpha Chips</b> (AA, 00, EE, etc.) to quickly apply common transparency presets used for special crew color effects.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                        <span>Lighting Scenarios ☀️</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="guide-content">
+                        Toggle between different environments to see how your color reacts to various lighting conditions in Los Santos.
+                        <br><br>
+                        <b>How to use:</b> Click the scenario buttons (None, Day, Night, Street, Garage) below the visualizer. <b>"None"</b> provides a neutral environment for viewing the "true" hex code, while <b>"Streetlight"</b> simulates the warm orange glow of city lamps.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                        <span>Magic Correct (Engine Simulation) ✨</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="guide-content">
+                        The GTA (RAGE) engine applies a desaturation and brightness shift to crew colors. This tool helps you counteract that.
+                        <br><br>
+                        <b>How to use:</b> Toggle <b>"Preview True In-Game Result"</b> to see the "Washout" effect. Click <b>"Magic Correct for In-Game"</b> to calculate the exact hex code needed to make your color look like your "Dream Color" once it's actually rendered in the game.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                        <span>OEM Library & Search 📚</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="guide-content">
+                        Searchable access to 1000+ real-world paint codes curated from manufacturers like Ferrari, Porsche, and BMW.
+                        <br><br>
+                        <b>How to use:</b> Navigate to the <b>Library</b> tab. Use the search bar to find specific colors or use the <b>Filter Chips</b> to browse by manufacturer. Click any swatch to load it into the editor.
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <div class="guide-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                        <span>Build Manager ⭐</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="guide-content">
+                        Save and manage your favorite color combinations with full build details.
+                        <br><br>
+                        <b>How to use:</b> Click <b>SAVE ⭐</b> in the editor to store your current color. You can add details like Pearlescent, Secondary, and Wheel colors. Access your collection in the <b>Saved</b> tab.
+                    </div>
+                </div>
+
+                <h3>Pro Tips 💡</h3>
+                <ul style="line-height: 1.8; color:#ccc; font-size:0.9rem; padding-left: 20px;">
+                    <li><b>True Black:</b> Use <code>#00000000</code> or <code>#000000AA</code> for the darkest possible black in GTA.</li>
+                    <li><b>Fluorescent Effect:</b> Use high-saturation colors with <code>AA</code> or <code>FF</code> alpha for a vibrant "glow" effect under certain lights.</li>
+                    <li><b>Pearlescent Stacking:</b> The 3D visualizer simulates how a pearl coat (e.g., Ultra Blue) interacts with your base color. Darker bases make pearls pop more!</li>
+                    <li><b>Fullscreen Comparison:</b> Use the <b>Full Screen</b> mode in the Tools tab to compare your color directly against your TV or monitor to ensure a perfect match.</li>
                 </ul>
 
                 <h3>How To Apply Colors</h3>
@@ -954,7 +1041,16 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.9)</h2>
+        <h2>Change Log (v10.10)</h2>
+
+        <h3>v10.10</h3>
+        <ul>
+            <li><b>New Feature:</b> Added <b>"Chameleon + Crew Color"</b> guide to the Glitches & Guides page.</li>
+            <li><b>Visualizer Update:</b> Refined <b>Pearlescent</b> effect logic for a more subtle and realistic appearance that doesn't overpower the lighting.</li>
+            <li><b>UX Update:</b> Lighting Controls are now correctly applied to the <b>Full Screen</b> color swatch.</li>
+            <li><b>UX Update:</b> Enabled <b>text selection</b> in the Change Log modal for easier copying of version notes.</li>
+            <li><b>Bug Fix:</b> The "Apply to Editor" button in the Magic Correction tool now correctly updates the main visualizer and mini-swatch.</li>
+        </ul>
 
         <h3>v10.9</h3>
         <ul>
@@ -1105,6 +1201,7 @@
                     <div class="car-layer comp-lighting"></div>
                 </div>
                 <div class="comparison-label">Dream Color<br>(Editor)</div>
+                <div class="comparison-hex" id="comp-dream-hex" style="font-family:monospace; font-size:0.75rem; color:var(--accent); margin-top:5px;">#000000</div>
             </div>
             <div class="comparison-item">
                 <div id="comp-ingame" class="comparison-swatch">
@@ -1113,6 +1210,7 @@
                     <div class="car-layer comp-lighting"></div>
                 </div>
                 <div class="comparison-label">In-Game Result<br>(Washout)</div>
+                <div class="comparison-hex" id="comp-ingame-hex" style="font-family:monospace; font-size:0.75rem; color:var(--accent); margin-top:5px;">#000000</div>
             </div>
             <div class="comparison-item">
                 <div id="comp-corrected" class="comparison-swatch">
@@ -1121,11 +1219,16 @@
                     <div class="car-layer comp-lighting"></div>
                 </div>
                 <div class="comparison-label">Corrected Result<br>(Magic)</div>
+                <div class="comparison-hex" id="comp-corrected-hex" style="font-family:monospace; font-size:0.75rem; color:var(--accent); margin-top:5px;">#000000</div>
             </div>
         </div>
 
         <div style="margin-top: 25px; font-size: 0.8rem; color: var(--text-dim); text-align: center; border-top: 1px solid #333; padding-top: 15px;">
             The "Corrected Result" is designed to look like your "Dream Color" once it's rendered by the GTA engine.
+        </div>
+
+        <div style="margin-top: 20px; display: flex; justify-content: center;">
+            <button class="btn btn-primary" style="background: linear-gradient(135deg, #FCAF17 0%, #ff8c00 100%);" onclick="closeModal('comparison-modal'); openCorrectionModal()">✨ Magic Correct for In-Game</button>
         </div>
     </div>
 </div>
@@ -1549,6 +1652,7 @@ function applyCorrectionToEditor() {
         state.a = 255;
     }
     syncAll();
+    applyPreview();
     closeModal('correction-modal');
     toast("Applied to Editor!");
 }
@@ -1574,6 +1678,10 @@ function openComparisonModal() {
         
         const base = el.querySelector('.comp-base');
         base.style.backgroundColor = s.hex;
+
+        // Update hex text
+        const hexText = document.getElementById(s.id + '-hex');
+        if (hexText) hexText.textContent = s.hex.toUpperCase();
     });
     
     document.getElementById('comparison-modal').classList.add('open');
@@ -1709,8 +1817,9 @@ function openFullscreenColor(source) {
     const overlay = document.getElementById('fs-overlay');
     
     // v8.8: APPLY TEXTURE AND PEARL TO OVERLAY
-    const textureClass = document.getElementById('visualizer-box').className.replace('viz-box', '').trim();
-    overlay.className = textureClass; // Applies texture-matte, texture-metal, etc.
+    const vizBox = document.getElementById('visualizer-box');
+    const textureClass = vizBox.className.replace('viz-box', '').trim();
+    overlay.className = textureClass; // Applies texture-matte, texture-metal, and lighting-mode
     
     // Update Pearl layer color
     const pearlColor = document.getElementById('pearl-select').value;
@@ -1721,8 +1830,10 @@ function openFullscreenColor(source) {
     } else {
         // From Library Detail
         document.getElementById('fs-base').style.backgroundColor = document.getElementById('modal-swatch').style.backgroundColor;
-        // Reset texture for library view (optional, or keep last selected)
+        // Reset and apply current lighting for library view
         overlay.className = ""; 
+        const currentLight = localStorage.getItem('gta_tool_lighting') || 'none';
+        if (currentLight !== 'none') overlay.classList.add('lighting-' + currentLight);
     }
     
     overlay.style.display = 'block';
@@ -1973,7 +2084,9 @@ function initThree() {
     
     threeRenderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     threeRenderer.setSize(container.clientWidth, container.clientHeight);
-    threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    // Adaptive Pixel Ratio: Cap at 1.0 for mobile to boost performance, 1.5 for desktop
+    const isMobile = window.innerWidth <= 800;
+    threeRenderer.setPixelRatio(isMobile ? 1.0 : Math.min(window.devicePixelRatio, 1.5));
     threeRenderer.shadowMap.enabled = true;
     threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer, RAGE-like shadows
     threeRenderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -2115,6 +2228,11 @@ function initThree() {
         threeCamera.aspect = container.clientWidth / container.clientHeight;
         threeCamera.updateProjectionMatrix();
         threeRenderer.setSize(container.clientWidth, container.clientHeight);
+        
+        // Update Adaptive Pixel Ratio on resize
+        const isMobile = window.innerWidth <= 800;
+        threeRenderer.setPixelRatio(isMobile ? 1.0 : Math.min(window.devicePixelRatio, 1.5));
+        
         requestRender();
     });
     
@@ -2190,7 +2308,7 @@ function createVehicle(type) {
                     const name = (child.name || "").toLowerCase();
                     const matName = (child.material?.name || "").toLowerCase();
                     
-                    // Restore v10.9 mesh detection logic as it was confirmed working
+                    // Restore v10.10 mesh detection logic as it was confirmed working
                     if (name === 'body' || name === 'body_work' || name.includes('body') || 
                         matName.includes('body') || name.includes('paint') || name.includes('primary')) {
                         child.material = bodyMat.clone();
@@ -2445,22 +2563,22 @@ function updateThreeMaterial() {
         if (pearlHex !== 'transparent') {
             const pColor = new THREE.Color(pearlHex);
             
-            // GTA pearlescent is a colored specular layer that follows Fresnel - Significantly boosted for visibility
-            mat.specularIntensity = 2.0;
-            mat.specularColor.setRGB(pColor.r * 2.5, pColor.g * 2.5, pColor.b * 2.5);
+            // GTA pearlescent is a colored specular layer that follows Fresnel - Balanced for realism
+            mat.specularIntensity = 1.0;
+            mat.specularColor.setRGB(pColor.r * 1.5, pColor.g * 1.5, pColor.b * 1.5);
             
-            // Sheen provides the soft "glow" on curves - Tightened slightly to prevent over-spreading
-            mat.sheen = 1.5;
-            mat.sheenColor.setRGB(pColor.r * 3.0, pColor.g * 3.0, pColor.b * 3.0);
-            mat.sheenRoughness = 0.08; // Sharper falloff to keep glow more focused on curves
+            // Sheen provides the soft "glow" on curves - Reduced to prevent color bleeding into lighting
+            mat.sheen = 0.8;
+            mat.sheenColor.setRGB(pColor.r * 1.2, pColor.g * 1.2, pColor.b * 1.2);
+            mat.sheenRoughness = 0.15; // Softer falloff for a more natural paint highlight
             
             // Clearcoat for high-gloss finish
             mat.clearcoat = 1.0;
             mat.clearcoatRoughness = 0.02;
             
-            // Iridescence for the physical depth - Slightly higher IOR to pull effect back toward edges
-            mat.iridescence = 0.6;
-            mat.iridescenceIOR = 1.9; // Balanced IOR for good visibility without excessive spread
+            // Iridescence for the physical depth - Reduced intensity to keep it grounded
+            mat.iridescence = 0.4;
+            mat.iridescenceIOR = 1.6; // Lower IOR for a more subtle edge effect
             mat.iridescenceThicknessRange = [100, 400];
         } else {
             mat.specularIntensity = 0.0;
