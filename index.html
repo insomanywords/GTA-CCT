@@ -923,7 +923,7 @@
                     <div class="guide-content">
                         High-fidelity 3D preview featuring the <b>Annis Elegy RH8</b> with real-time material simulation (Gloss, Matte, Metal, Chrome).
                         <br><br>
-                        <b>Adaptive Performance:</b> The visualizer now features intelligent resolution scaling and optimized shadow mapping. It automatically detects mobile devices to provide a smooth, high-frame-rate experience without draining battery or sacrificing visual clarity.
+                        <b>Performance Balancing:</b> The visualizer now features moderate resolution capping (1.5x for Mobile, 2.0x for Desktop). This keeps frame rates smooth on high-DPI screens while maintaining high-fidelity shader and shadow quality.
                         <br><br>
                         <b>How to use:</b> Drag to rotate the camera, pinch or scroll to zoom. Use the <b>Toggle 3D Preview</b> button to enable/disable the visualizer. 
                         <br><br>
@@ -1030,7 +1030,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.16
+                    Current Build: v10.17
                 </div>
             </div>
         </div>
@@ -1094,13 +1094,16 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.16)</h2>
+        <h2>Change Log (v10.17)</h2>
+
+        <h3>v10.17</h3>
+        <ul>
+            <li><b>Performance Balancing:</b> Implemented separate moderate resolution caps (1.5x for Mobile, 2.0x for Desktop) to optimize frame rates on high-DPI displays without sacrificing shader or shadow fidelity.</li>
+        </ul>
 
         <h3>v10.16</h3>
         <ul>
-            <li><b>Performance Update:</b> Implemented adaptive resolution scaling (Pixel Ratio Capping) to drastically reduce GPU overhead on high-DPI screens, especially on mobile devices.</li>
-            <li><b>Optimization:</b> Retuned shadow map systems with tight-frustum tracking and dynamic mobile resolutions for sharper shadows with 50% less performance impact.</li>
-            <li><b>Shader Tuning:</b> Optimized shader precision for mobile GPUs to ensure a high frame rate during camera rotation and interaction.</li>
+            <li><b>Hotfix:</b> Reverted recent 3D visualizer performance optimizations (Resolution Scaling, Shadow Capping, and Shader Precision) to resolve visual artifacts and "hazy" rendering on mobile devices. Full-fidelity rendering is now restored globally.</li>
         </ul>
 
         <h3>v10.15</h3>
@@ -2292,18 +2295,15 @@ function initThree() {
     threeCamera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 1000);
     threeCamera.position.set(5, 3, 5);
     
-    const isMobile = window.innerWidth <= 800;
-    const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.2) : Math.min(window.devicePixelRatio, 1.75);
-
-    threeRenderer = new THREE.WebGLRenderer({ 
-        antialias: true, 
-        powerPreference: "high-performance",
-        precision: isMobile ? "mediump" : "highp"
-    });
+    threeRenderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     threeRenderer.setSize(container.clientWidth, container.clientHeight);
+    
+    // Moderate resolution caps
+    const isMobile = window.innerWidth <= 800;
+    const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2.0);
     threeRenderer.setPixelRatio(pixelRatio); 
     threeRenderer.shadowMap.enabled = true;
-    threeRenderer.shadowMap.type = isMobile ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap; 
+    threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer, RAGE-like shadows
     threeRenderer.outputColorSpace = THREE.SRGBColorSpace;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping; 
     threeRenderer.toneMappingExposure = 1.1; 
@@ -2312,10 +2312,11 @@ function initThree() {
     threePMREM = new THREE.PMREMGenerator(threeRenderer);
     threePMREM.compileEquirectangularShader();
     
+    // Post-Processing Pipeline
     const size = new THREE.Vector2();
     threeRenderer.getSize(size);
     const renderTarget = new THREE.WebGLRenderTarget(size.x, size.y, {
-        samples: isMobile ? 2 : 4 // Lower MSAA on mobile to save GPU bandwidth
+        samples: 4 
     });
     
     threeComposer = new EffectComposer(threeRenderer, renderTarget);
@@ -2448,8 +2449,10 @@ function initThree() {
         if (!container.clientWidth) return;
         const width = container.clientWidth;
         const height = container.clientHeight;
+        
+        // Retain moderate resolution caps on resize
         const isMobile = window.innerWidth <= 800;
-        const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.2) : Math.min(window.devicePixelRatio, 1.75);
+        const pixelRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2.0);
 
         threeCamera.aspect = width / height;
         threeCamera.updateProjectionMatrix();
@@ -2734,17 +2737,16 @@ function updateThreeLighting(mode) {
         threeMainLight.intensity = 6.0; // Slightly increased for the higher altitude
         threeMainLight.castShadow = true;
         threeMainLight.shadow.bias = -0.0001;
-        const shadowRes = window.innerWidth <= 800 ? 1024 : 2048;
-        threeMainLight.shadow.mapSize.width = shadowRes;
-        threeMainLight.shadow.mapSize.height = shadowRes;
+        threeMainLight.shadow.mapSize.width = 2048;
+        threeMainLight.shadow.mapSize.height = 2048;
         
-        // Optimized shadow camera frustum sized specifically for the vehicle
+        // Massive shadow camera frustum to prevent any clipping artifacts
         threeMainLight.shadow.camera.near = 1;
-        threeMainLight.shadow.camera.far = 150;
-        threeMainLight.shadow.camera.left = -10;
-        threeMainLight.shadow.camera.right = 10;
-        threeMainLight.shadow.camera.top = 10;
-        threeMainLight.shadow.camera.bottom = -10;
+        threeMainLight.shadow.camera.far = 200;
+        threeMainLight.shadow.camera.left = -50;
+        threeMainLight.shadow.camera.right = 50;
+        threeMainLight.shadow.camera.top = 50;
+        threeMainLight.shadow.camera.bottom = -50;
         threeMainLight.shadow.camera.updateProjectionMatrix();
         
         threeMainLight.target.position.set(0, 0, 0);
