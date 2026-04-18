@@ -1033,7 +1033,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.20
+                    Current Build: v10.21
                 </div>
             </div>
         </div>
@@ -1097,7 +1097,13 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.20)</h2>
+        <h2>Change Log (v10.21)</h2>
+
+        <h3>v10.21</h3>
+        <ul>
+            <li><b>Smart Resolution Scaling:</b> Implemented dynamic viewport sampling. The engine now intelligently lowers resolution during camera movement to maintain a lock on 60 FPS, then reconstructs the high-fidelity image the moment interaction stops.</li>
+            <li><b>Performance Balancing:</b> Refined the internal pixel ratio management to prevent frame-drops during aggressive rotation on high-DPI mobile screens.</li>
+        </ul>
 
         <h3>v10.20</h3>
         <ul>
@@ -2369,6 +2375,30 @@ function initThree() {
     threeControls.target.set(0, 0.5, 0);
     
     threeControls.addEventListener('change', requestRender);
+    
+    // Smart Resolution Scaling (Dynamic Sampling)
+    // Lowers resolution during movement for 60fps, restores for high-fidelity static image
+    const updateResolution = (isInteracting) => {
+        const isMobile = window.innerWidth <= 800;
+        let pRatio;
+        
+        if (isInteracting) {
+            // Drop resolution by ~25-40% during interaction
+            pRatio = isMobile ? Math.min(window.devicePixelRatio, 1.0) : Math.min(window.devicePixelRatio, 1.25);
+        } else {
+            // Restore full capped resolution
+            pRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2.0);
+        }
+
+        if (threeRenderer.getPixelRatio() !== pRatio) {
+            threeRenderer.setPixelRatio(pRatio);
+            threeComposer.setSize(container.clientWidth, container.clientHeight);
+            requestRender();
+        }
+    };
+
+    threeControls.addEventListener('start', () => updateResolution(true));
+    threeControls.addEventListener('end', () => updateResolution(false));
     
     window.addEventListener('resize', onThreeResize);
     document.addEventListener('fullscreenchange', onThreeResize);
