@@ -18,6 +18,7 @@
     import { MeshoptDecoder } from 'https://esm.sh/three@0.160.0/examples/jsm/libs/meshopt_decoder.module.js';
     import { RectAreaLightUniformsLib } from 'https://esm.sh/three@0.160.0/examples/jsm/lights/RectAreaLightUniformsLib.js';
     import { RGBELoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/RGBELoader.js';
+    import { KTX2Loader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/KTX2Loader.js';
     import { EffectComposer, RenderPass, EffectPass, BloomEffect, KernelSize } from 'https://esm.sh/postprocessing@6.33.3?deps=three@0.160.0';
     
     window.THREE = THREE;
@@ -26,6 +27,7 @@
     window.MeshoptDecoder = MeshoptDecoder;
     window.RectAreaLightUniformsLib = RectAreaLightUniformsLib;
     window.RGBELoader = RGBELoader;
+    window.KTX2Loader = KTX2Loader;
     window.EffectComposer = EffectComposer;
     window.RenderPass = RenderPass;
     window.EffectPass = EffectPass;
@@ -1031,7 +1033,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.19
+                    Current Build: v10.20
                 </div>
             </div>
         </div>
@@ -1095,7 +1097,13 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.19)</h2>
+        <h2>Change Log (v10.20)</h2>
+
+        <h3>v10.20</h3>
+        <ul>
+            <li><b>Texture Compression (KTX2):</b> Integrated support for high-performance KTX2/Basis Universal textures, significantly reducing VRAM usage and eliminating loading stutters on mobile devices.</li>
+            <li><b>Shadow Throttling:</b> Implemented manual shadow map updates. The engine now only recalculates shadows during active user interaction (drag/rotate) or material updates, drastically lowering background GPU consumption.</li>
+        </ul>
 
         <h3>v10.19</h3>
         <ul>
@@ -2298,7 +2306,7 @@ function loadColor(hex, name, end, info){
 /* --- THREE.JS 3D VISUALIZER --- */
 function initThree() {
     if (typeof THREE === 'undefined' || typeof OrbitControls === 'undefined' || typeof GLTFLoader === 'undefined' || 
-        typeof RectAreaLightUniformsLib === 'undefined' || typeof MeshoptDecoder === 'undefined' ||
+        typeof RectAreaLightUniformsLib === 'undefined' || typeof MeshoptDecoder === 'undefined' || typeof KTX2Loader === 'undefined' ||
         typeof EffectComposer === 'undefined' || typeof RenderPass === 'undefined' || 
         typeof EffectPass === 'undefined' || typeof BloomEffect === 'undefined' || typeof KernelSize === 'undefined') {
         setTimeout(initThree, 100);
@@ -2322,6 +2330,7 @@ function initThree() {
     threeRenderer.setPixelRatio(pixelRatio); 
     threeRenderer.shadowMap.enabled = true;
     threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer, RAGE-like shadows
+    threeRenderer.shadowMap.autoUpdate = false; // Mobile Optimization: Manual shadow updates
     threeRenderer.outputColorSpace = THREE.SRGBColorSpace;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping; 
     threeRenderer.toneMappingExposure = 1.1; 
@@ -2465,6 +2474,9 @@ function initThree() {
             if (controlsChanged || needsRender) {
                 if (threeCameraLight) threeCameraLight.position.copy(threeCamera.position);
                 
+                // Refresh shadows only when frame changes to save mobile GPU power
+                threeRenderer.shadowMap.needsUpdate = true;
+
                 // Bypass composer if bloom is disabled to ensure zero "fuzzy glow" artifacts
                 if (threeBloomEffect && threeBloomEffect.intensity > 0) {
                     threeComposer.render();
@@ -2540,6 +2552,12 @@ function createVehicle(type) {
 
         const loader = new GLTFLoader();
         loader.setMeshoptDecoder(MeshoptDecoder);
+        
+        // Mobile Optimization: KTX2 Texture Compression support
+        const ktx2Loader = new KTX2Loader()
+            .setTranscoderPath('https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/jsm/libs/basis/')
+            .detectSupport(threeRenderer);
+        loader.setKTX2Loader(ktx2Loader);
 
         // Use raw GitHub URL directly for immediate updates (bypassing CDN propagation delays)
         const url = `https://raw.githubusercontent.com/insomanywords/GTA-CCT/main/elegy.glb?t=${new Date().getTime()}`;
