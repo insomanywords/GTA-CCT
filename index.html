@@ -19,7 +19,8 @@
     import { RectAreaLightUniformsLib } from 'https://esm.sh/three@0.160.0/examples/jsm/lights/RectAreaLightUniformsLib.js';
     import { RGBELoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/RGBELoader.js';
     import { KTX2Loader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/KTX2Loader.js';
-    import { EffectComposer, RenderPass, EffectPass, BloomEffect, KernelSize } from 'https://esm.sh/postprocessing@6.33.3?deps=three@0.160.0';
+    import { Reflector } from 'https://esm.sh/three@0.160.0/examples/jsm/objects/Reflector.js';
+    import { EffectComposer, RenderPass, EffectPass, BloomEffect, KernelSize, SSAOEffect, NormalPass, HueSaturationEffect, BrightnessContrastEffect, VignetteEffect, ChromaticAberrationEffect, NoiseEffect } from 'https://esm.sh/postprocessing@6.33.3?deps=three@0.160.0';
     
     window.THREE = THREE;
     window.OrbitControls = OrbitControls;
@@ -33,6 +34,14 @@
     window.EffectPass = EffectPass;
     window.BloomEffect = BloomEffect;
     window.KernelSize = KernelSize;
+    window.SSAOEffect = SSAOEffect;
+    window.NormalPass = NormalPass;
+    window.HueSaturationEffect = HueSaturationEffect;
+    window.BrightnessContrastEffect = BrightnessContrastEffect;
+    window.VignetteEffect = VignetteEffect;
+    window.ChromaticAberrationEffect = ChromaticAberrationEffect;
+    window.NoiseEffect = NoiseEffect;
+    window.Reflector = Reflector;
 </script>
 
 <style>
@@ -927,11 +936,9 @@
         <div class="guide-content" style="padding: 10px 0;">
             High-fidelity 3D preview featuring the <b>Annis Elegy RH8</b> with real-time material simulation (Gloss, Matte, Metal, Chrome).
             <br><br>
-            <b>3D Telemetry:</b> Now featuring a live <b>FPS Counter</b> and <b>Current Hex Display</b> integrated directly into the 3D HUD. 
+            <b>RAGE Shader Fidelity:</b> Now utilizing a <b>Separated Lobe</b> pearlescent model. This advanced shader produces vibrant "color-shift" highlights from all viewing angles while maintaining perfectly neutral, realistic environment reflections.
             <br><br>
-            <b>Performance Balancing:</b> The visualizer now targets a smooth **60 FPS**, utilizing an optimized `postprocessing` engine and resolution capping (1.5x Mobile / 2.0x Desktop) to ensure fluid interaction without sacrificing shader fidelity.
-            <br><br>
-            <b>Authentic Materials:</b> Refined <b>Pearlescent logic</b> to mimic GTA Online's concentrated highlights. New <b>Engine Deduplication</b> ensures a single Three.js instance for maximum stability across devices.
+            <b>Performance & Stability:</b> The engine targets a locked **60 FPS** with dynamic sampling. Real-time planar reflections are optimized to 256x256 to provide the authentic "blurred" grounding seen in GTA V's garage interiors.
         </div>
 
                 <div class="guide-item">
@@ -954,9 +961,13 @@
                     <div class="guide-content">
                         Toggle between different environments to see how your color reacts to various lighting conditions in Los Santos.
                         <br><br>
+                        <b>Garage:</b> A high-fidelity showroom environment featuring an overhead **RectAreaLight** for soft, diffused highlights. Utilizes high-performance planar reflections for a realistic, grounded floor.
+                        <br><br>
                         <b>Daylight:</b> Calibrated for <b>High Noon</b> in Los Santos, featuring strong vertical highlights and high-contrast shadowing.
                         <br><br>
-                        <b>None:</b> A strictly clinical, high-key studio environment with neutral, uniform illumination designed for pure color analysis without any environmental tinting or directional shadows.
+                        <b>Night / Street:</b> Evaluates how colors behave under artificial yellow-sodium streetlights and soft moonlit conditions.
+                        <br><br>
+                        <b>None:</b> A strictly clinical, high-key studio environment with neutral, uniform illumination designed for pure color analysis.
                     </div>
                 </div>
 
@@ -1033,7 +1044,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.21
+                    Current Build: v10.22
                 </div>
             </div>
         </div>
@@ -1097,7 +1108,15 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.21)</h2>
+        <h2>Change Log (v10.22)</h2>
+
+        <h3>v10.22</h3>
+        <ul>
+            <li><b>RAGE Engine Pearl Overhaul:</b> Implemented a sophisticated "Separated Lobe" material model. This technique decouples the colored pearlescent highlights from the neutral environment map, resolving the "color-bleed" issue where garage floor reflections were previously tinted.</li>
+            <li><b>Direct Angle Visibility:</b> Refined the pearlescent catch to be visible from camera-facing (0-degree) angles without requiring grazing viewing angles, mimicking the Los Santos Customs paint behavior.</li>
+            <li><b>Garage Lighting Optimization:</b> Consolidated 6 directional lights into a single, high-fidelity overhead "Area Light" (Softbox) for realistic showroom highlights and improved performance.</li>
+            <li><b>Planar Reflection Tuning:</b> Reduced mirror reflection resolution to 256x256 globally. This provides the authentic "blurred/grounded" look seen in GTA V's interiors while drastically improving frame stability on mobile devices.</li>
+        </ul>
 
         <h3>v10.21</h3>
         <ul>
@@ -1431,7 +1450,9 @@ let threeScene, threeCamera, threeRenderer, threeControls, threeVehicle;
 let threeAmbientLight, threeMainLight, threeFillLight, threeRimLight, threeCameraLight, threeHemiLight;
 let threeAreaLight1, threeAreaLight2;
 let threeFloor, threeFloorMat, threeShadow;
-let threeComposer, threeBloomEffect, threePMREM;
+let threeComposer, threeBloomEffect, threePMREM, threeNormalPass, threeSSAOEffect;
+let threeHueSatEffect, threeBCEffect, threeVignetteEffect, threeChromaticEffect, threeNoiseEffect;
+let threeMirrorFloor;
 let currentEnvLoadingId = 0;
 let threeBodyMeshes = [];
 let isThreeInitialized = false;
@@ -2339,7 +2360,7 @@ function initThree() {
     threeRenderer.shadowMap.autoUpdate = false; // Mobile Optimization: Manual shadow updates
     threeRenderer.outputColorSpace = THREE.SRGBColorSpace;
     threeRenderer.toneMapping = THREE.ACESFilmicToneMapping; 
-    threeRenderer.toneMappingExposure = 1.1; 
+    threeRenderer.toneMappingExposure = 1.0; 
     container.appendChild(threeRenderer.domElement);
     
     threePMREM = new THREE.PMREMGenerator(threeRenderer);
@@ -2347,12 +2368,56 @@ function initThree() {
     
     // Post-Processing Pipeline (Optimized with 'postprocessing' library)
     threeComposer = new EffectComposer(threeRenderer, {
-        multisampling: 4
+        multisampling: isMobile ? 0 : 4 // Disable MSAA on mobile when using SSAO for performance
     });
     
     const renderPass = new RenderPass(threeScene, threeCamera);
     threeComposer.addPass(renderPass);
+
+    // Normal Pass is required for high-quality SSAO
+    threeNormalPass = new NormalPass(threeScene, threeCamera);
+    threeComposer.addPass(threeNormalPass);
     
+    // SSAO Effect Configuration (Mobile Optimized)
+    threeSSAOEffect = new SSAOEffect(threeCamera, threeNormalPass.texture, {
+        blendFunction: 21, // MULTIPLY
+        samples: 16,       // Reduced from 32 for mobile performance
+        rings: 4,
+        distanceThreshold: 0.2, // Small radius for panel gaps and contact shadows
+        distanceFalloff: 0.1,
+        rangeThreshold: 0.05,
+        rangeFalloff: 0.01,
+        luminanceInfluence: 0.1,
+        radius: 0.15,
+        intensity: 1.5,
+        bias: 0.02
+    });
+
+    // Color Grading Stack (Mobile Efficient)
+    threeHueSatEffect = new HueSaturationEffect({
+        saturation: 0.0,
+        hue: 0.0
+    });
+    
+    threeBCEffect = new BrightnessContrastEffect({
+        brightness: 0.0,
+        contrast: 0.0
+    });
+    
+    threeVignetteEffect = new VignetteEffect({
+        offset: 0.5,
+        darkness: 0.5
+    });
+
+    threeChromaticEffect = new ChromaticAberrationEffect({
+        offset: new THREE.Vector2(0, 0) // Disabled by default, enabled in specific modes
+    });
+    
+    threeNoiseEffect = new NoiseEffect({
+        premultiply: true,
+        opacity: 0.05 
+    });
+
     // Bloom Effect Configuration
     threeBloomEffect = new BloomEffect({
         intensity: 1.0,
@@ -2361,7 +2426,7 @@ function initThree() {
         kernelSize: KernelSize.MEDIUM
     });
     
-    const effectPass = new EffectPass(threeCamera, threeBloomEffect);
+    const effectPass = new EffectPass(threeCamera, threeSSAOEffect, threeHueSatEffect, threeBCEffect, threeVignetteEffect, threeChromaticEffect, threeNoiseEffect, threeBloomEffect);
     threeComposer.addPass(effectPass);
     
     // The library handles tone mapping and output color space automatically
@@ -2450,6 +2515,18 @@ function initThree() {
     threeFloor.rotation.x = -Math.PI / 2;
     threeFloor.receiveShadow = true;
     threeScene.add(threeFloor);
+
+    // Real-time Planar Mirror (RAGE Engine Showroom Style)
+    threeMirrorFloor = new Reflector(floorGeo, {
+        clipBias: 0.0001, // Minimal bias for tighter contact
+        textureWidth: 256,
+        textureHeight: 256,
+        color: 0x222222
+    });
+    threeMirrorFloor.rotation.x = -Math.PI / 2;
+    threeMirrorFloor.position.y = -0.02; // Dropped to sit below surface
+    threeMirrorFloor.visible = false;
+    threeScene.add(threeMirrorFloor);
     
     // Grid helper for studio feel
     const grid = new THREE.GridHelper(20, 20, 0x222222, 0x111111);
@@ -2772,6 +2849,30 @@ function updateThreeLighting(mode) {
     // Post-Processing Defaults
     threeBloomEffect.intensity = 0.05;
     threeRenderer.toneMappingExposure = 1.0;
+    
+    // Reset Color Grading Defaults
+    threeHueSatEffect.setSaturation(0);
+    threeHueSatEffect.setHue(0);
+    threeBCEffect.brightness = 0;
+    threeBCEffect.contrast = 0;
+    threeVignetteEffect.offset = 0.5;
+    threeVignetteEffect.darkness = 0.5;
+    
+    // Reset Step 2 Lens Effects
+    threeChromaticEffect.offset.set(0, 0);
+    threeNoiseEffect.opacity = 0.02; // Very subtle base noise to prevent banding
+    
+    // Reset Mirror Floor (Planar Reflections)
+    if (threeMirrorFloor) threeMirrorFloor.visible = false;
+    if (threeFloor) {
+        threeFloor.visible = true;
+        threeFloor.position.y = 0;
+        if (threeFloorMat) {
+            threeFloorMat.transparent = false;
+            threeFloorMat.opacity = 1.0;
+        }
+    }
+    
     if (threeShadow) threeShadow.material.opacity = 0.6;
 
     const loadEnv = (file) => {
@@ -2813,7 +2914,7 @@ function updateThreeLighting(mode) {
         threeHemiLight.intensity = 1.5;
         threeScene.add(threeHemiLight);
         
-        threeRenderer.toneMappingExposure = 1.2; // Brighter overall exposure
+        threeRenderer.toneMappingExposure = 1.0; // Standard exposure for color accuracy
         
         threeScene.background = new THREE.Color(0x0a0a0a);
         if (threeFloorMat) {
@@ -2823,22 +2924,24 @@ function updateThreeLighting(mode) {
         }
         if (threeShadow) threeShadow.material.opacity = 0.2;
         threeBloomEffect.intensity = 0.01;
+        threeHueSatEffect.setSaturation(-0.05);
+        threeVignetteEffect.darkness = 0.3;
         // OutputPass not needed with postprocessing library as it handles sRGB automatically
     } else if (mode === 'day') {
         loadEnv('pedestrian_overpass_1k.hdr'); 
         threeAmbientLight.color.setHex(0xffffff);
-        threeAmbientLight.intensity = 0.6; // Restored from 1.0
+        threeAmbientLight.intensity = 0.2; // Reduced to prevent washout
         threeScene.add(threeAmbientLight);
         
         threeHemiLight.color.setHex(0xccddff); // Brighter sky blue
         threeHemiLight.groundColor.setHex(0x666666); // Brighter ground bounce
-        threeHemiLight.intensity = 1.2; // Restored from 2.0
+        threeHemiLight.intensity = 0.6; // Reduced to prevent washout
         threeScene.add(threeHemiLight);
         
         // High Noon Sun - Directly Overhead
         threeMainLight.color.setHex(0xffffff);
         threeMainLight.position.set(0, 80, 0); // Raised significantly and centered over vehicle
-        threeMainLight.intensity = 6.0; // Slightly increased for the higher altitude
+        threeMainLight.intensity = 12.0; // Increased for high-noon punch with lower exposure
         threeMainLight.castShadow = true;
         threeMainLight.shadow.bias = -0.0001;
         threeMainLight.shadow.mapSize.width = 2048;
@@ -2859,7 +2962,7 @@ function updateThreeLighting(mode) {
         
         threeBloomEffect.intensity = 0.02; // Subtle bloom for sun glare
         threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-        threeRenderer.toneMappingExposure = 1.6; // Restored to original GTA contrast
+        threeRenderer.toneMappingExposure = 1.0; // Standard exposure for color accuracy
         threeScene.background = new THREE.Color(0xddeeff); // Brighter, washed out sky
         if (threeFloorMat) {
             threeFloorMat.color.setHex(0x333333); // Brighter asphalt
@@ -2867,6 +2970,15 @@ function updateThreeLighting(mode) {
             threeFloorMat.envMapIntensity = 1.0;
         }
         if (threeShadow) threeShadow.material.opacity = 0.7; // Strong shadows for noon
+        
+        // Color Grade: Extra Sunny (High Sat, Warm contrast)
+        threeHueSatEffect.setSaturation(0.15);
+        threeBCEffect.contrast = 0.1;
+        threeVignetteEffect.darkness = 0.4;
+        
+        // Step 2 Lens: Sunny Haze
+        threeNoiseEffect.opacity = 0.04;
+        threeChromaticEffect.offset.set(0.0005, 0.0005);
     } else if (mode === 'night') {
         // Using Moonless Golf HDRI for realistic night reflections
         loadEnv('https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/moonless_golf_1k.hdr'); 
@@ -2911,7 +3023,7 @@ function updateThreeLighting(mode) {
         threeBloomEffect.intensity = 0; 
         threeRenderer.shadowMap.enabled = true; // Enable shadows for realism
         threeRenderer.toneMapping = THREE.ACESFilmicToneMapping; 
-        threeRenderer.toneMappingExposure = 1.1; 
+        threeRenderer.toneMappingExposure = 1.0; // Standard exposure for color accuracy
         threeScene.background = new THREE.Color(0x020205); 
         if (threeFloorMat) {
             threeFloorMat.color.setHex(0x111111); // Brighter than 0x010101
@@ -2919,6 +3031,18 @@ function updateThreeLighting(mode) {
             threeFloorMat.envMapIntensity = 0;
         }
         if (threeShadow) threeShadow.material.opacity = 0.4;
+        
+        // Color Grade: Moonlight (Desat, Cool, High Contrast)
+        threeHueSatEffect.setSaturation(-0.2);
+        threeBCEffect.contrast = 0.15;
+        threeVignetteEffect.darkness = 0.6;
+        
+        // Step 2: Nighttime Noise & Post-Processing
+        threeNoiseEffect.opacity = 0.08;
+        threeChromaticEffect.offset.set(0.001, 0.001);
+        if (threeMirrorFloor) {
+            threeMirrorFloor.visible = false; // Disabled for performance
+        }
     } else if (mode === 'street') {
         loadEnv('https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/moonless_golf_1k.hdr'); 
         
@@ -2962,7 +3086,7 @@ function updateThreeLighting(mode) {
         threeBloomEffect.intensity = 0; 
         threeRenderer.shadowMap.enabled = true; // Enable shadows for realism
         threeRenderer.toneMapping = THREE.ACESFilmicToneMapping; 
-        threeRenderer.toneMappingExposure = 1.1; 
+        threeRenderer.toneMappingExposure = 1.0; // Standard exposure for color accuracy
         threeScene.background = new THREE.Color(0x020205); 
         if (threeFloorMat) {
             threeFloorMat.color.setHex(0x111111); // Brighter than 0x010101
@@ -2970,7 +3094,19 @@ function updateThreeLighting(mode) {
             threeFloorMat.envMapIntensity = 0;
         }
         if (threeShadow) threeShadow.material.opacity = 0.4;
+        
+        // Color Grade: Sodium Streetlight (Warm, Hard Contrast)
+        threeHueSatEffect.setSaturation(0.05);
+        threeBCEffect.contrast = 0.2;
+        threeVignetteEffect.darkness = 0.7;
 
+        // Step 2: Streetlight Grit & Post-Processing
+        threeNoiseEffect.opacity = 0.12;
+        threeChromaticEffect.offset.set(0.002, 0.002);
+        if (threeMirrorFloor) {
+            threeMirrorFloor.visible = false; // Disabled for performance
+        }
+        
         // Step 5: THE STREETLIGHT (Spotlight Style)
         // Wide cone angle, narrow edge softness (hard edge), warm orange color
         // Height set to 9.144 units (approx. 30 feet in 1 unit = 1 meter scale)
@@ -3005,7 +3141,7 @@ function updateThreeLighting(mode) {
         
         // 1. Intense Cool Ambient Fill - Standardized with Day colors
         threeAmbientLight.color.setHex(0xffffff);
-        threeAmbientLight.intensity = 2.0; // Reduced from 3.5 to fix washed out look
+        threeAmbientLight.intensity = 0.5; // Reduced to prevent color washout
         threeScene.add(threeAmbientLight);
         
         // 2. Strong Cool Hemisphere Light - Standardized with Day colors
@@ -3014,35 +3150,29 @@ function updateThreeLighting(mode) {
         threeHemiLight.intensity = 1.5; // Reduced from 2.5
         threeScene.add(threeHemiLight);
         
-        // 3. Intense Overhead Lighting (6 Directional Lights for total coverage)
-        const lightIntensity = 2.5; // Reduced from 4.0
-        const lightColor = 0xf0f8ff; // Alice Blue (very cool white)
+        // 3. Optimized Showroom Lighting (RectAreaLight "Softbox")
+        // Replaces 6 live lights with 1 Area Light and 1 Shadow Caster
+        const studioColor = 0xf0f8ff; // Alice Blue
         
-        const lights = [
-            [0, 15, 0],    // Direct Top
-            [10, 12, 10],  // Corners
-            [-10, 12, 10],
-            [10, 12, -10],
-            [-10, 12, -10],
-            [0, 10, 15]    // Frontal fill
-        ];
+        // The "Area Light Map" equivalent - Large overhead softbox
+        const softbox = new THREE.RectAreaLight(studioColor, 5.0, 15, 8);
+        softbox.position.set(0, 8, 0);
+        softbox.lookAt(0, 0, 0);
+        threeScene.add(softbox);
         
-        lights.forEach((pos, i) => {
-            const dirLight = new THREE.DirectionalLight(lightColor, lightIntensity);
-            dirLight.position.set(...pos);
-            dirLight.castShadow = (i === 0); 
-            if (i === 0) {
-                dirLight.shadow.mapSize.width = 2048;
-                dirLight.shadow.mapSize.height = 2048;
-                dirLight.shadow.camera.near = 0.5;
-                dirLight.shadow.camera.far = 50;
-                dirLight.shadow.camera.left = -15;
-                dirLight.shadow.camera.right = 15;
-                dirLight.shadow.camera.top = 15;
-                dirLight.shadow.camera.bottom = -15;
-            }
-            threeScene.add(dirLight);
-        });
+        // Single primary Shadow Caster
+        const sun = new THREE.DirectionalLight(studioColor, 1.5);
+        sun.position.set(5, 12, 5);
+        sun.castShadow = true;
+        sun.shadow.mapSize.width = 1024;
+        sun.shadow.mapSize.height = 1024;
+        sun.shadow.camera.near = 0.5;
+        sun.shadow.camera.far = 50;
+        sun.shadow.camera.left = -15;
+        sun.shadow.camera.right = 15;
+        sun.shadow.camera.top = 15;
+        sun.shadow.camera.bottom = -15;
+        threeScene.add(sun);
 
         // 4. Dark Polished Showroom Environment
         threeScene.background = new THREE.Color(0x010101); 
@@ -3057,7 +3187,31 @@ function updateThreeLighting(mode) {
         // 5. Post-Processing (Maximum Studio Brightness)
         threeBloomEffect.intensity = 0; 
         threeRenderer.toneMapping = THREE.ACESFilmicToneMapping; 
-        threeRenderer.toneMappingExposure = 1.1; // Unified exposure
+        threeRenderer.toneMappingExposure = 1.0; // Standard exposure for color accuracy
+        
+        // Color Grade: Studio (Neutral, Clean, Vignette)
+        threeHueSatEffect.setSaturation(-0.1);
+        threeBCEffect.contrast = 0.1;
+        threeVignetteEffect.darkness = 0.5;
+        
+        // Step 2: High-End Showroom Planar Reflections (Layered Mode)
+        // We use a transparent floor on top of the mirror for professional depth
+        if (threeMirrorFloor) {
+            threeMirrorFloor.visible = true;
+            if (threeMirrorFloor.material.uniforms && threeMirrorFloor.material.uniforms.color) {
+                threeMirrorFloor.material.uniforms.color.value.setHex(0x333333); // Stronger mirror underneath
+            }
+        }
+        
+        if (threeFloorMat) {
+            threeFloorMat.transparent = true;
+            threeFloorMat.opacity = 0.85; // Allow mirror to show through
+            threeFloorMat.color.setHex(0x111111);
+            threeFloorMat.roughness = 0.2; 
+        }
+        threeFloor.visible = true; // MUST be visible to catch contact shadows and SSAO
+        
+        threeNoiseEffect.opacity = 0.03; // Smooth clean studio feel
     }
     
     if (typeof requestRender === 'function') requestRender();
@@ -3081,11 +3235,13 @@ function updateThreeMaterial() {
         mat.color.set(displayed.hex);
         
         // Base PBR setup for car paint (Default: Gloss/Standard)
-        mat.roughness = 0.04; 
-        mat.metalness = 0.05; 
-        mat.ior = 1.45; 
-        mat.clearcoat = 1.0; 
-        mat.clearcoatRoughness = 0.03; 
+        // Values refined to match Adrian Courrèges RAGE Engine analysis
+        mat.roughness = 0.05; // Base layer catch
+        mat.metalness = 0.05; // Non-metallic dielectric paint
+        mat.ior = 1.5;        // Standard paint IOR
+        mat.clearcoat = 1.0;  // Permanent lacquer layer
+        mat.clearcoatRoughness = 0.02; // Sharp sun glints
+        mat.clearcoatIOR = 1.6; // Improved depth/thickness (Rage refined)
         
         let envInt = 0.3; 
         if (mode === 'none') envInt = 0.25;
@@ -3138,26 +3294,34 @@ function updateThreeMaterial() {
         }
         
         // Universal Pearlescent Layer (Applied to ALL Texture Previews)
+        // RAGE Logic: The car ONLY reflects the environment in neutral white.
+        // The pearl color is an additive "Iridescence" catch that does not tint light.
         if (pearlHex !== 'transparent') {
             const pColor = new THREE.Color(pearlHex);
             
-            // Specular Color Shift (Sharp light-based pearl)
-            mat.specularIntensity = 1.0;
-            // Saturate the pearl highlight color (Enhanced to 2.0x for brightness)
-            mat.specularColor.copy(pColor).multiplyScalar(2.0);
+            // 1. NEUTRAL SPECULAR (Fixes global environment bleed)
+            // LOCKING these to white ensures everything the car reflects stays white.
+            mat.ior = 1.5;
+            mat.specularIntensity = 1.0; 
+            mat.specularColor.set(0xffffff); // PURE WHITE REFLECTIONS
             
-            // Iridescence for angle-dependent color shift (Rage Fresnel)
+            // 2. THE PEARL COLOR (High-Range Iridescence)
+            // We use thick iridescence to force the color into the 0-degree angle.
             mat.iridescence = 1.0; 
-            mat.iridescenceIOR = 1.5; // Balanced IOR for concentrated "flip" on edges
-            mat.iridescenceThicknessRange = [100, 700]; 
+            mat.iridescenceIOR = 2.0; // High IOR helps visibility straight-on
+            mat.iridescenceThicknessRange = [400, 800]; // Shifted to higher thickness for central color pop
             
-            // Concentrated/Sharp sheen catch (GTA-style highlights)
-            mat.sheen = 0.95; 
+            // 3. THE PEARL SHIMMER (Sheen)
+            // Adds the additive colored highlights from direct light sources.
+            mat.sheen = 1.0; 
             mat.sheenColor.copy(pColor);
-            mat.sheenRoughness = 0.15; // Lower roughness sharpens and concentrates the highlights
- 
-            // Boost environmental reflection for the pearl (Enhanced to 1.7x)
-            mat.envMapIntensity *= 1.7; 
+            mat.sheenRoughness = 0.3; // Broad catch to wrap around body
+            
+            // 4. NEUTRAL CLEARCOAT GLOSS
+            if (texture !== 'matte') {
+                mat.clearcoat = 1.0;
+                mat.clearcoatRoughness = 0.02;
+            }
         }
         
         mat.needsUpdate = true;
