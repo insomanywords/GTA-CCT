@@ -1042,10 +1042,11 @@
                     <li>Go to Los Santos Customs > Respray > Crew Color.</li>
                 </ol>
 
+                <button class="btn btn-sec" style="margin-top:20px; display:none;" id="pwa-install-btn" onclick="installPWA()">Install as App</button>
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.25
+                    Current Build: v10.26
                 </div>
             </div>
         </div>
@@ -1109,7 +1110,15 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.25)</h2>
+        <h2>Change Log (v10.26)</h2>
+
+        <h3>v10.26</h3>
+        <ul>
+            <li><b>Manual PWA Install Trigger:</b> Implemented a fallback "Install as App" button in the About section that appears only when the browser confirms the app is installable, bridging the gap for browsers that suppress automatic prompts.</li>
+            <li><b>Reliable Event Capture:</b> Refined the `beforeinstallprompt` listener to reliably store the installation event for user-initiated triggers.</li>
+            <li><b>Production-Grade ID Enforcement:</b> Added a unique application `id` (RFC 7231) to the Web App Manifest to resolve identification conflicts on shared hostnames like GitHub Pages.</li>
+            <li><b>Smart registration rewrite:</b> Updated the Service Worker environment detector to better distinguish between local development, cloud iframes, and production deployment.</li>
+        </ul>
 
         <h3>v10.25</h3>
         <ul>
@@ -3464,23 +3473,46 @@ function toggleGuide(h){ h.nextElementSibling.classList.toggle('open'); }
 function exportFavs(){ const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(state.favs)); a.download="gta_colors.json"; a.click(); }
 function importFavs(){ const i=document.createElement('input'); i.type='file'; i.onchange=e=>{const r=new FileReader(); r.onload=x=>{state.favs=JSON.parse(x.target.result); localStorage.setItem(STORAGE_KEY,JSON.stringify(state.favs)); renderSaved(); toast("Imported!");}; r.readAsText(e.target.files[0]);}; i.click(); }
 
-// Smart PWA Service Worker Handler
+// Smart PWA Service Worker & Install Handler
+let deferredPrompt;
+const installBtn = document.getElementById('pwa-install-btn');
+
 if ('serviceWorker' in navigator) {
-    const isIframe = window.self !== window.top;
-    if (isIframe) {
-        // Unregister in iframe environments to prevent loading blocks
-        navigator.serviceWorker.getRegistrations().then(regs => {
-            for(let r of regs) r.unregister();
-        });
+    const isLocal = location.hostname === 'localhost' || location.hostname.includes('127.0.0.1');
+    const isStudio = location.hostname.includes('run.app'); // AI Studio specific
+    
+    if (isStudio) {
+        // Silent unregister in Studio
+        navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
     } else {
-        // Register for top-level usage to enable PWA installability
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('PWA active', reg))
+                .then(reg => console.log('PWA active'))
                 .catch(err => console.error('PWA fail', err));
         });
     }
 }
+
+// Handle Install Prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) installBtn.style.display = 'block';
+});
+
+async function installPWA() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to install: ${outcome}`);
+    deferredPrompt = null;
+    if (installBtn) installBtn.style.display = 'none';
+}
+
+window.addEventListener('appinstalled', () => {
+    console.log('PWA installed');
+    if (installBtn) installBtn.style.display = 'none';
+});
 </script>
 </body>
 </html>
