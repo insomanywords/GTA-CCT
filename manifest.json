@@ -1,7 +1,7 @@
 {
-  "short_name": "GTA Color Tool",
   "name": "GTA Crew Color Tool",
-  "id": "./index.html",
+  "short_name": "GTA Color Tool",
+  "description": "Ultimate GTA Crew Color Tool for customizing vehicle colors in GTA Online.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0b0b0b",
