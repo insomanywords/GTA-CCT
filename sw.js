@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gta-color-tool-v10.24';
+const CACHE_NAME = 'gta-color-tool-v10.25';
 const ASSETS = [
   './',
   './index.html',
@@ -12,6 +12,7 @@ self.addEventListener('install', (event) => {
       return cache.addAll(ASSETS);
     })
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -22,6 +23,7 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
