@@ -1045,7 +1045,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.24
+                    Current Build: v10.25
                 </div>
             </div>
         </div>
@@ -1109,7 +1109,14 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.24)</h2>
+        <h2>Change Log (v10.25)</h2>
+
+        <h3>v10.25</h3>
+        <ul>
+            <li><b>Enhanced PWA Installability:</b> Refactored the Service Worker lifecycle to ensure immediate activation (`skipWaiting`) and immediate client control (`clients.claim`). This significantly improves the reliability of browser install prompts on mobile and desktop.</li>
+            <li><b>Manifest Optimization:</b> Consolidated the Web App Manifest icon definitions with a focus on "any maskable" support and clarified the application entry point for stricter browser compliance.</li>
+            <li><b>Environment Stability:</b> Integrated a smart environment detector that automatically manages Service Worker registration to remain compatible with development iframes while enabling full PWA features in production.</li>
+        </ul>
 
         <h3>v10.24</h3>
         <ul>
