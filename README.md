@@ -34,7 +34,6 @@ This application is a **Progressive Web App (PWA)**. You can install it on your 
 ## 🛠️ Technical Details
 *   **3D Engine:** Three.js (v160)
 *   **Post-Processing:** `postprocessing` library for high-grade Bloom, SSAO, and Vignette.
-*   **Build Tool:** Vite
 *   **Mathematics:** Tjakal 1.58 Gamma Correction for in-game parity.
 
 ## 📜 Credits
