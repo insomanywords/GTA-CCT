@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gta-color-tool-v10.27';
+const CACHE_NAME = 'gta-color-tool-v10.28';
 const ASSETS = [
   './',
   './index.html',
@@ -27,9 +27,26 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // Stale-while-revalidate for local shell assets
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request);
+    caches.match(event.request).then((response) => {
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse.ok) {
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+          });
+        }
+        return networkResponse;
+      }).catch(() => response);
+      return response || fetchPromise;
     })
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
