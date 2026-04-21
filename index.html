@@ -1044,7 +1044,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.22
+                    Current Build: v10.23
                 </div>
             </div>
         </div>
@@ -1108,14 +1108,24 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.22)</h2>
+        <h2>Change Log (v10.23)</h2>
+
+        <h3>v10.23</h3>
+        <ul>
+            <li><b>Garage Lighting Optimization:</b> Replaced the overhead Softbox (RectAreaLight) with a non-reflective DirectionalLight simulation. This maintains intense studio illumination while eliminating generic box reflections on the vehicle, allowing the detailed HDRI environment map to drive high-fidelity highlights.</li>
+            <li><b>Showroom Floor Refinement:</b> Removed planar mirror reflections from the Garage floor in favor of high-fidelity dynamic ground shadows, creating a consistent grounded look across all environment modes.</li>
+            <li><b>Nighttime Atmosphere:</b> Enabled real-time vehicle shadows and standardized floor material properties in Nighttime mode to ensure the vehicle remains realistically integrated under moonlit conditions.</li>
+            <li><b>Material Parity:</b> Synchronized ground glossiness (roughness and metalness) across all interactive lighting modes to provide a seamless aesthetic transition when switching environments.</li>
+        </ul>
 
         <h3>v10.22</h3>
         <ul>
+            <li><b>Shadow Overhaul:</b> Implemented real-time dynamic ground shadows for <b>Daylight</b> and <b>Nighttime</b> modes. Highlights include high-noon "SpotLight" mapping for realistic depth and grounding.</li>
+            <li><b>Visual Consistency:</b> Standardized the floor asphalt color, roughness, and metalness across <b>Daylight</b>, <b>Nighttime</b>, <b>Streetlight</b>, and <b>Garage</b> modes for a seamless aesthetic.</li>
+            <li><b>Mobile Optimization:</b> Integrated <b>Dynamic Resolution Scaling</b> to ensure smooth 60 FPS performance on high-DPI mobile devices without sacrificing visual fidelity.</li>
+            <li><b>Environment Cleanup:</b> Removed the floor grid helper in all lighting modes for a cleaner, more immersive showroom experience.</li>
             <li><b>RAGE Engine Pearl Overhaul:</b> Implemented a sophisticated "Separated Lobe" material model. This technique decouples the colored pearlescent highlights from the neutral environment map, resolving the "color-bleed" issue where garage floor reflections were previously tinted.</li>
             <li><b>Direct Angle Visibility:</b> Refined the pearlescent catch to be visible from camera-facing (0-degree) angles without requiring grazing viewing angles, mimicking the Los Santos Customs paint behavior.</li>
-            <li><b>Garage Lighting Optimization:</b> Consolidated 6 directional lights into a single, high-fidelity overhead "Area Light" (Softbox) for realistic showroom highlights and improved performance.</li>
-            <li><b>Planar Reflection Tuning:</b> Reduced mirror reflection resolution to 256x256 globally. This provides the authentic "blurred/grounded" look seen in GTA V's interiors while drastically improving frame stability on mobile devices.</li>
         </ul>
 
         <h3>v10.21</h3>
@@ -1462,7 +1472,7 @@ function requestRender() { needsRender = true; }
 let state = {
     r:0, g:0, b:0, h:0, s:0, l:0, a:170, hex:"#000000", endCode:"AA", name:"Black",
     favs: [], library: [], filterCat:'All', filterText:'', pendingActionIndex: -1, loadedInfo: {},
-    history: [], mixerMode: 'rgb', engineSimActive: false
+    history: [], mixerMode: 'rgb', engineSimActive: false, isThreeMoving: false
 };
 
 // "Committed" State for Main Visualizer & Buttons
@@ -2443,27 +2453,41 @@ function initThree() {
     
     // Smart Resolution Scaling (Dynamic Sampling)
     // Lowers resolution during movement for 60fps, restores for high-fidelity static image
-    const updateResolution = (isInteracting) => {
+    window.updateResolution = (isInteracting, forceResize = false) => {
+        if (!threeRenderer || !threeComposer) return;
+        const container = document.getElementById('three-container');
+        if (!container) return;
+        
         const isMobile = window.innerWidth <= 800;
+        const isFullscreen = !!document.fullscreenElement;
         let pRatio;
         
         if (isInteracting) {
-            // Drop resolution by ~25-40% during interaction
-            pRatio = isMobile ? Math.min(window.devicePixelRatio, 1.0) : Math.min(window.devicePixelRatio, 1.25);
+            // Drop aggressively during motion - focus on movement fluidly
+            pRatio = isMobile ? (isFullscreen ? 0.8 : 1.0) : 1.25;
         } else {
-            // Restore full capped resolution
-            pRatio = isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2.0);
+            // Restore full capped resolution for high-fidelity static image
+            pRatio = isMobile ? 1.5 : 2.0; 
         }
+        
+        // Clamp to device maximum
+        const finalRatio = Math.min(pRatio, window.devicePixelRatio);
 
-        if (threeRenderer.getPixelRatio() !== pRatio) {
-            threeRenderer.setPixelRatio(pRatio);
+        const ratioChanged = threeRenderer.getPixelRatio() !== finalRatio;
+        if (ratioChanged || forceResize) {
+            threeRenderer.setPixelRatio(finalRatio);
+            threeRenderer.setSize(container.clientWidth, container.clientHeight);
             threeComposer.setSize(container.clientWidth, container.clientHeight);
             requestRender();
         }
     };
 
+    // Use regular event listeners for immediate response
     threeControls.addEventListener('start', () => updateResolution(true));
-    threeControls.addEventListener('end', () => updateResolution(false));
+    threeControls.addEventListener('end', () => {
+        // We delay the end slightly or rely on the loop to catch damping
+        if (!threeControls.enableDamping) updateResolution(false);
+    });
     
     window.addEventListener('resize', onThreeResize);
     document.addEventListener('fullscreenchange', onThreeResize);
@@ -2528,10 +2552,6 @@ function initThree() {
     threeMirrorFloor.visible = false;
     threeScene.add(threeMirrorFloor);
     
-    // Grid helper for studio feel
-    const grid = new THREE.GridHelper(20, 20, 0x222222, 0x111111);
-    threeScene.add(grid);
-    
     // Contact Shadow (Grounding the vehicle)
     const shadowCanvas = document.createElement('canvas');
     shadowCanvas.width = 512; shadowCanvas.height = 512;
@@ -2577,6 +2597,19 @@ function initThree() {
             frameCount++;
             
             const controlsChanged = threeControls.update();
+            
+            // Dynamic Resolution Tracking (Handles damping/coasting)
+            if (controlsChanged) {
+                if (!state.isThreeMoving) {
+                    state.isThreeMoving = true;
+                    updateResolution(true);
+                }
+            } else {
+                if (state.isThreeMoving) {
+                    state.isThreeMoving = false;
+                    updateResolution(false);
+                }
+            }
             
             if (controlsChanged || needsRender) {
                 if (threeCameraLight) threeCameraLight.position.copy(threeCamera.position);
@@ -2938,27 +2971,28 @@ function updateThreeLighting(mode) {
         threeHemiLight.intensity = 0.6; // Reduced to prevent washout
         threeScene.add(threeHemiLight);
         
-        // High Noon Sun - Directly Overhead
+        // High Noon Sun - Specialized SpotLight for realistic ground shadows (Logic from Streetlight)
+        const sunShadow = new THREE.SpotLight(0xffffff, 45000.0);
+        sunShadow.position.set(15, 40, 15); // Angled further for even more dramatic shadows
+        sunShadow.angle = Math.PI / 6; // Wider cone to capture car at steeper angle
+        sunShadow.penumbra = 0.3;
+        sunShadow.decay = 2;
+        sunShadow.distance = 100;
+        sunShadow.castShadow = true;
+        threeRenderer.shadowMap.enabled = true; 
+        sunShadow.shadow.bias = -0.0001;
+        sunShadow.shadow.mapSize.width = 2048;
+        sunShadow.shadow.mapSize.height = 2048;
+        sunShadow.target.position.set(0, 0, 0);
+        threeScene.add(sunShadow);
+        threeScene.add(sunShadow.target);
+
+        // Keep DirectionalLight as an unshadowed fill light to maintain the high-noon balance
         threeMainLight.color.setHex(0xffffff);
-        threeMainLight.position.set(0, 80, 0); // Raised significantly and centered over vehicle
-        threeMainLight.intensity = 12.0; // Increased for high-noon punch with lower exposure
-        threeMainLight.castShadow = true;
-        threeMainLight.shadow.bias = -0.0001;
-        threeMainLight.shadow.mapSize.width = 2048;
-        threeMainLight.shadow.mapSize.height = 2048;
-        
-        // Massive shadow camera frustum to prevent any clipping artifacts
-        threeMainLight.shadow.camera.near = 1;
-        threeMainLight.shadow.camera.far = 200;
-        threeMainLight.shadow.camera.left = -50;
-        threeMainLight.shadow.camera.right = 50;
-        threeMainLight.shadow.camera.top = 50;
-        threeMainLight.shadow.camera.bottom = -50;
-        threeMainLight.shadow.camera.updateProjectionMatrix();
-        
-        threeMainLight.target.position.set(0, 0, 0);
+        threeMainLight.position.set(30, 80, 30); // Angled to match the shadow caster
+        threeMainLight.intensity = 8.0; 
+        threeMainLight.castShadow = false; // Shadow handled by sunShadow SpotLight
         threeScene.add(threeMainLight);
-        threeScene.add(threeMainLight.target);
         
         threeBloomEffect.intensity = 0.02; // Subtle bloom for sun glare
         threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -2969,7 +3003,7 @@ function updateThreeLighting(mode) {
             threeFloorMat.roughness = 0.2;
             threeFloorMat.envMapIntensity = 1.0;
         }
-        if (threeShadow) threeShadow.material.opacity = 0.7; // Strong shadows for noon
+        if (threeShadow) threeShadow.material.opacity = 0.4; // Reduced from 0.7 to show real dynamic shadows
         
         // Color Grade: Extra Sunny (High Sat, Warm contrast)
         threeHueSatEffect.setSaturation(0.15);
@@ -3014,6 +3048,14 @@ function updateThreeLighting(mode) {
         // Secondary rim from the other side
         const rim2 = new THREE.DirectionalLight(0xbbccff, 2.0);
         rim2.position.set(5, 3, -5);
+        rim2.castShadow = true;
+        rim2.shadow.bias = -0.0001;
+        rim2.shadow.mapSize.width = 1024;
+        rim2.shadow.mapSize.height = 1024;
+        rim2.shadow.camera.left = -10;
+        rim2.shadow.camera.right = 10;
+        rim2.shadow.camera.top = 10;
+        rim2.shadow.camera.bottom = -10;
         threeScene.add(rim2);
         
         if (threeCameraLight) {
@@ -3026,7 +3068,7 @@ function updateThreeLighting(mode) {
         threeRenderer.toneMappingExposure = 1.0; // Standard exposure for color accuracy
         threeScene.background = new THREE.Color(0x020205); 
         if (threeFloorMat) {
-            threeFloorMat.color.setHex(0x111111); // Brighter than 0x010101
+            threeFloorMat.color.setHex(0x333333); // Match Daylight asphalt
             threeFloorMat.roughness = 1.0; // Diffuse to catch light
             threeFloorMat.envMapIntensity = 0;
         }
@@ -3089,7 +3131,7 @@ function updateThreeLighting(mode) {
         threeRenderer.toneMappingExposure = 1.0; // Standard exposure for color accuracy
         threeScene.background = new THREE.Color(0x020205); 
         if (threeFloorMat) {
-            threeFloorMat.color.setHex(0x111111); // Brighter than 0x010101
+            threeFloorMat.color.setHex(0x333333); // Match Daylight asphalt
             threeFloorMat.roughness = 1.0; // Diffuse to catch light
             threeFloorMat.envMapIntensity = 0;
         }
@@ -3150,20 +3192,23 @@ function updateThreeLighting(mode) {
         threeHemiLight.intensity = 1.5; // Reduced from 2.5
         threeScene.add(threeHemiLight);
         
-        // 3. Optimized Showroom Lighting (RectAreaLight "Softbox")
-        // Replaces 6 live lights with 1 Area Light and 1 Shadow Caster
+        // 3. Optimized Showroom Lighting ("Softbox" Simulation)
+        // Replaces the RectAreaLight with a DirectionalLight to provide top-down illumination 
+        // without the visible box reflections on the car/floor.
         const studioColor = 0xf0f8ff; // Alice Blue
         
-        // The "Area Light Map" equivalent - Large overhead softbox
-        const softbox = new THREE.RectAreaLight(studioColor, 5.0, 15, 8);
-        softbox.position.set(0, 8, 0);
-        softbox.lookAt(0, 0, 0);
+        // The "Softbox" equivalent - Top-down DirectionalLight
+        const softbox = new THREE.DirectionalLight(studioColor, 3.0);
+        softbox.position.set(0, 20, 0);
+        softbox.target.position.set(0, 0, 0);
         threeScene.add(softbox);
+        threeScene.add(softbox.target);
         
         // Single primary Shadow Caster
         const sun = new THREE.DirectionalLight(studioColor, 1.5);
         sun.position.set(5, 12, 5);
         sun.castShadow = true;
+        threeRenderer.shadowMap.enabled = true;
         sun.shadow.mapSize.width = 1024;
         sun.shadow.mapSize.height = 1024;
         sun.shadow.camera.near = 0.5;
@@ -3177,10 +3222,12 @@ function updateThreeLighting(mode) {
         // 4. Dark Polished Showroom Environment
         threeScene.background = new THREE.Color(0x010101); 
         if (threeFloorMat) {
-            threeFloorMat.color.setHex(0x111111); // Dark grey floor
-            threeFloorMat.roughness = 0.15; // Increased from 0.01 for less mirror-like reflections
-            threeFloorMat.metalness = 0.4; // Reduced from 0.9 to lower the metallic shine
-            threeFloorMat.envMapIntensity = 0.8; // Reduced from 2.0 to soften environmental reflections
+            threeFloorMat.color.setHex(0x333333); // Match Daylight asphalt
+            threeFloorMat.roughness = 0.2; // Match Day
+            threeFloorMat.metalness = 0.5; // Match Day default
+            threeFloorMat.envMapIntensity = 1.0; // Match Day
+            threeFloorMat.transparent = false;
+            threeFloorMat.opacity = 1.0;
         }
         if (threeShadow) threeShadow.material.opacity = 0.3; // Softer shadows due to high ambient
 
@@ -3194,22 +3241,12 @@ function updateThreeLighting(mode) {
         threeBCEffect.contrast = 0.1;
         threeVignetteEffect.darkness = 0.5;
         
-        // Step 2: High-End Showroom Planar Reflections (Layered Mode)
-        // We use a transparent floor on top of the mirror for professional depth
+        // Step 2: High-End Showroom (Shadows Only)
         if (threeMirrorFloor) {
-            threeMirrorFloor.visible = true;
-            if (threeMirrorFloor.material.uniforms && threeMirrorFloor.material.uniforms.color) {
-                threeMirrorFloor.material.uniforms.color.value.setHex(0x333333); // Stronger mirror underneath
-            }
+            threeMirrorFloor.visible = false; // Reflection removed as requested
         }
         
-        if (threeFloorMat) {
-            threeFloorMat.transparent = true;
-            threeFloorMat.opacity = 0.85; // Allow mirror to show through
-            threeFloorMat.color.setHex(0x111111);
-            threeFloorMat.roughness = 0.2; 
-        }
-        threeFloor.visible = true; // MUST be visible to catch contact shadows and SSAO
+        threeFloor.visible = true; // MUST be visible to catch shadows
         
         threeNoiseEffect.opacity = 0.03; // Smooth clean studio feel
     }
@@ -3339,8 +3376,15 @@ function onThreeResize() {
     const container = document.getElementById('three-container');
     threeCamera.aspect = container.clientWidth / container.clientHeight;
     threeCamera.updateProjectionMatrix();
-    threeRenderer.setSize(container.clientWidth, container.clientHeight);
-    threeComposer.setSize(container.clientWidth, container.clientHeight);
+
+    // Use the optimized resolution updater to maintain caps and dynamic state
+    if (typeof updateResolution === 'function') {
+        updateResolution(state.isThreeMoving || false, true);
+    } else {
+        threeRenderer.setSize(container.clientWidth, container.clientHeight);
+        threeComposer.setSize(container.clientWidth, container.clientHeight);
+    }
+    
     if (typeof requestRender === 'function') requestRender();
 }
 
