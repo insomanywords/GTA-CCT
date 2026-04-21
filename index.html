@@ -1042,11 +1042,10 @@
                     <li>Go to Los Santos Customs > Respray > Crew Color.</li>
                 </ol>
 
-                <button class="btn btn-sec" style="margin-top:20px; display:none;" id="pwa-install-btn" onclick="installPWA()">Install as App</button>
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.27
+                    Current Build: v10.28
                 </div>
             </div>
         </div>
@@ -1110,7 +1109,13 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.27)</h2>
+        <h2>Change Log (v10.28)</h2>
+
+        <h3>v10.28</h3>
+        <ul>
+            <li><b>Native PWA Prompt Architecture:</b> Removed custom `beforeinstallprompt` blocking logic to allow native Chromium and iOS heuristics to invoke standard "Add to Home Screen" mini-infobars perfectly synchronously with the Garage tool.</li>
+            <li><b>Stale-While-Revalidate Network Strategy:</b> Replaced the basic aggressive <code>Cache-First</code> Service Worker fetching logic with a dynamic <code>Stale-While-Revalidate</code> flow standardizing asset updates seamlessly in the background without user intervention.</li>
+        </ul>
 
         <h3>v10.27</h3>
         <ul>
@@ -3480,9 +3485,6 @@ function exportFavs(){ const a=document.createElement('a'); a.href="data:text/js
 function importFavs(){ const i=document.createElement('input'); i.type='file'; i.onchange=e=>{const r=new FileReader(); r.onload=x=>{state.favs=JSON.parse(x.target.result); localStorage.setItem(STORAGE_KEY,JSON.stringify(state.favs)); renderSaved(); toast("Imported!");}; r.readAsText(e.target.files[0]);}; i.click(); }
 
 // Smart PWA Service Worker & Install Handler
-let deferredPrompt;
-const installBtn = document.getElementById('pwa-install-btn');
-
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
@@ -3492,27 +3494,6 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
-
-// Handle Install Prompt
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (installBtn) installBtn.style.display = 'block';
-});
-
-async function installPWA() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response to install: ${outcome}`);
-    deferredPrompt = null;
-    if (installBtn) installBtn.style.display = 'none';
-}
-
-window.addEventListener('appinstalled', () => {
-    console.log('PWA installed');
-    if (installBtn) installBtn.style.display = 'none';
-});
 </script>
 </body>
 </html>
