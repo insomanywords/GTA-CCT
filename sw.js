@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gta-color-tool-v10.30';
+const CACHE_NAME = 'gta-color-tool-v10.31';
 const ASSETS = [
   './',
   './index.html',
@@ -35,13 +35,15 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
-        if (networkResponse.ok) {
+        if (networkResponse && networkResponse.ok) {
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, networkResponse.clone());
           });
         }
         return networkResponse;
-      }).catch(() => response);
+      }).catch(() => {
+        return response || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+      });
       return response || fetchPromise;
     })
   );
