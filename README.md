@@ -2,7 +2,7 @@
 
 The ultimate utility for customizing vehicle colors in GTA Online. This tool bridges the gap between the Rockstar Social Club and the in-game RAGE engine, allowing you to create, preview, and inject perfect "Modded" and "OEM" colors with 100% accuracy.
 
-**Current Build:** v10.29
+**Current Build:** v10.30
 
 ## 🚀 Key Features
 
