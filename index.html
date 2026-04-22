@@ -8,10 +8,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Ultimate GTA Crew Color Tool">
+<meta name="application-name" content="GTA Crew Color Tool">
+<meta name="apple-mobile-web-app-title" content="GTA Crew Color Tool">
 <link rel="manifest" href="manifest.json">
 <title>GTA Crew Color Tool</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="https://img.icons8.com/color/100/grand-theft-auto-v.png">
+<link rel="apple-touch-icon" href="icon.svg">
 <script type="module">
     import * as THREE from 'https://esm.sh/three@0.160.0';
     import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
@@ -1045,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.28
+                    Current Build: v10.29
                 </div>
             </div>
         </div>
@@ -1109,7 +1111,14 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.28)</h2>
+        <h2>Change Log (v10.29)</h2>
+
+        <h3>v10.29</h3>
+        <ul>
+            <li><b>OS Identity Meta Tags:</b> Added <code>application-name</code> and <code>apple-mobile-web-app-title</code> meta tags to explicitly define target workspace identities for Desktop and Apple mobile PWA installation heuristics.</li>
+            <li><b>Strict Scope SW Registration:</b> Corrected Service Worker root scoping from relative (<code>./sw.js</code>) to direct (<code>sw.js</code>) to align with Chromium path compliance rules, matching the reliable reference setup.</li>
+            <li><b>Unified Local Linking:</b> Transitioned the iOS touch icon dependency to securely reference the offline local SVG asset, eliminating potential 3rd-party network restrictions blocking PWA installation sequences silently.</li>
+        </ul>
 
         <h3>v10.28</h3>
         <ul>
@@ -3487,7 +3496,7 @@ function importFavs(){ const i=document.createElement('input'); i.type='file'; i
 // Smart PWA Service Worker & Install Handler
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then(reg => {
+        navigator.serviceWorker.register('sw.js').then(reg => {
             console.log('PWA active');
         }).catch(err => {
             console.log('PWA fail', err);
