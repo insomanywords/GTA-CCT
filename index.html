@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.29
+                    Current Build: v10.30
                 </div>
             </div>
         </div>
@@ -1111,7 +1111,13 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.29)</h2>
+        <h2>Change Log (v10.30)</h2>
+
+        <h3>v10.30</h3>
+        <ul>
+            <li><b>SVG Parser Fallback Fix:</b> Discovered that complex SVG filters (e.g., drop shadows) crash native OS-level PWA evaluators in Chromium/Android, silently blocking install prompts. Generated clean `192x192` and `512x512` fallback PNG static icons directly from the Vector design, restoring 100% heuristic compliance.</li>
+            <li><b>Manifest Strict Types:</b> Registered explicit `&lt;image/png&gt;` mapping profiles into `manifest.json` ensuring OS processes gracefully downgrade to robust PNG formats when evaluating "Add to Home Screen" eligibility.</li>
+        </ul>
 
         <h3>v10.29</h3>
         <ul>
