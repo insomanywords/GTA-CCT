@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.json">
 <title>GTA Crew Color Tool</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
 <script type="module">
     import * as THREE from 'https://esm.sh/three@0.160.0';
     import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.30
+                    Current Build: v10.31
                 </div>
             </div>
         </div>
@@ -1111,7 +1111,14 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.30)</h2>
+        <h2>Change Log (v10.31)</h2>
+
+        <h3>v10.31</h3>
+        <ul>
+            <li><b>WebAPK Generation Fixes:</b> Completely removed SVG references from `manifest.json` to bypass Chromium compiler crashes during WebAPK generation. Stripped ambiguous "purpose" tags to ensure pristine array parsing.</li>
+            <li><b>Offline Crash Prevention:</b> Hardened the Service Worker fetch logic to return a valid '503 Service Unavailable' response instead of resolving 'undefined' during simulated offline tests, passing strict PWA installation criteria.</li>
+            <li><b>iOS Icon Enforcement:</b> Explicitly routed the `apple-touch-icon` tag to the 192x192 PNG to prevent iOS from silently failing when attempting to parse SVGs.</li>
+        </ul>
 
         <h3>v10.30</h3>
         <ul>
