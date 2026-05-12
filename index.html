@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.35
+                    Current Build: v10.36
                 </div>
             </div>
         </div>
@@ -1111,11 +1111,16 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.35)</h2>
+        <h2>Change Log (v10.36)</h2>
+
+        <h3>v10.36</h3>
+        <ul>
+            <li><b>Hardened Breakout Logic:</b> Implemented a high-precision Android Intent breakout that targets the Chrome Browser main engine. This forces the Go to Edit Crew Page button to open a full browser tab instead of a Custom Tab, ensuring you can use the address bar for injector scripts.</li>
+        </ul>
 
         <h3>v10.35</h3>
         <ul>
-            <li><b>PWA Force Tab Breakout:</b> Re-implemented the Android "Go to Edit Crew Page" logic using a reinforced navigation scheme. This ensures the management page forces an escape from PWA standalone mode into a full Chrome tab, required for address-bar bookmarklet functionality.</li>
+            <li><b>PWA Force Tab Breakout:</b> Re-implemented the Android "Go to Edit Crew Page" logic using a reinforced navigation scheme.</li>
             <li><b>Cross-Platform Stability:</b> Refined tab-opening logic to ensure consistent behavior across iOS, Android, and Desktop browsers.</li>
         </ul>
 
@@ -1657,8 +1662,12 @@ function openSocialClub(e){
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
     if (isAndroid && isStandalone) {
-        // googlechrome://navigate?url= is the most reliable way to force breakout of PWA Custom Tabs/WebViews
-        window.location.href = `googlechrome://navigate?url=${encodeURIComponent(targetUrl)}`;
+        // Targeted Chrome Main Intent: This is the most aggressive way to force a full browser tab escape.
+        // We use a small timeout to ensure the clipboard copy finishes.
+        const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;component=com.android.chrome/com.google.android.apps.chrome.Main;end`;
+        setTimeout(() => {
+            window.location.href = intent;
+        }, 100);
     } else {
         // Standard window.open for Desktop, iOS, and non-standalone Android
         window.open(targetUrl, '_blank', 'noopener,noreferrer');
