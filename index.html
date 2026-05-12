@@ -893,7 +893,7 @@
                     <label>Crew Name</label>
                     <input type="text" id="crew-name-input" placeholder="e.g. My Awesome Crew" oninput="saveCrewName(this.value)">
                 </div>
-                <button class="btn btn-primary" onclick="openSocialClub()">Go to Edit Crew Page</button>
+                <a id="sc-link" class="btn btn-primary" target="_blank" rel="noopener noreferrer" onclick="return openSocialClub(event)" style="text-decoration:none; display:inline-block; text-align:center;">Go to Edit Crew Page</a>
 
                 <h3 style="margin-top:25px;">3. Neon Generator</h3>
                 <p>Boosts the brightness of your current mix to "Modded/Neon" levels.</p>
@@ -1036,7 +1036,7 @@
                 <ol style="padding-left: 20px; line-height: 1.6; color:#ccc; font-size:0.9rem;">
                     <li>Create or Select a color in this tool.</li>
                     <li>Tap <b>COPY HEX</b> (e.g., <code>#FF0000AA</code>).</li>
-                    <li>Go to the <a href="https://socialclub.rockstargames.com/crews" target="_blank" style="color:var(--accent)">Rockstar Social Club</a> "Edit Crew" page.</li>
+                    <li>Go to the <a href="https://socialclub.rockstargames.com/crews" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">Rockstar Social Club</a> "Edit Crew" page.</li>
                     <li><b>Desktop:</b> Right-click the color box > "Inspect" > Paste hex into the value field.</li>
                     <li><b>Mobile:</b> Copy the "Injector Script" from the Tools tab, create a bookmark, and run it on the Social Club page.</li>
                     <li>Click "Save Crew" on Social Club.</li>
@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.31
+                    Current Build: v10.32
                 </div>
             </div>
         </div>
@@ -1111,7 +1111,14 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.31)</h2>
+        <h2>Change Log (v10.32)</h2>
+
+        <h3>v10.32</h3>
+        <ul>
+            <li><b>PWA Workflow Optimization:</b> Re-engineered the "Go to Edit Crew Page" logic to force opening in a full browser tab. This bypasses the restricted PWA custom browser window, enabling full bookmarklet/injector script support on mobile.</li>
+            <li><b>Smart Bookmarklet Injection:</b> The "Go to Edit Crew Page" button now automatically builds and copies a pre-populated injector script to your clipboard with the active color settings pre-applied for a one-click experience.</li>
+            <li><b>Engine Sim Copy Logic:</b> Refined <code>COPY HEX</code> behavior; the original hex code is now correctly captured even when "Preview True In-Game Result" (Engine Simulation) is active.</li>
+        </ul>
 
         <h3>v10.31</h3>
         <ul>
@@ -1555,7 +1562,10 @@ let pickerState = {
     
     // Load Saved Crew Name
     const savedName = localStorage.getItem('gta_tool_crewname');
-    if(savedName) document.getElementById('crew-name-input').value = savedName;
+    if(savedName) {
+        document.getElementById('crew-name-input').value = savedName;
+        updateSCLink();
+    }
 
     // Load Lighting Scenario
     const savedLight = localStorage.getItem('gta_tool_lighting') || 'none';
@@ -1595,13 +1605,37 @@ let pickerState = {
 /* --- NEW TOOL FUNCTIONS --- */
 function saveCrewName(val){
     localStorage.setItem('gta_tool_crewname', val);
+    updateSCLink();
 }
 
-function openSocialClub(){
+function updateSCLink() {
     const name = document.getElementById('crew-name-input').value.trim();
-    if(!name) { toast("Please enter a Crew Name"); return; }
-    const formatted = name.replace(/\s+/g, '_');
-    window.open(`https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`, '_blank');
+    const link = document.getElementById('sc-link');
+    if(!link) return;
+    if(name) {
+        link.href = `https://socialclub.rockstargames.com/crew/${name.replace(/\s+/g, '_')}/manage/edit`;
+    } else {
+        link.href = "javascript:void(0)";
+    }
+}
+
+function openSocialClub(e){
+    const name = document.getElementById('crew-name-input').value.trim();
+    if(!name) { 
+        toast("Please enter a Crew Name"); 
+        if(e) e.preventDefault();
+        return false; 
+    }
+    
+    // Build and copy pre-applied bookmarklet
+    const hex = (displayed.sourceHex || displayed.hex) + (displayed.end || "");
+    const bookmarklet = `javascript:(function(){var hex='${hex}';var hidden=document.getElementById('crewColor');var visible=document.getElementById('createCrewFormColor');if(hidden){hidden.value=hex;}if(visible){visible.value=hex;}var swatch=document.querySelector('.minicolors-swatch-color');if(swatch){swatch.style.backgroundColor=hex;}alert('Color Injected! Click Save now.');})()`;
+    
+    navigator.clipboard.writeText(bookmarklet);
+    toast("Injector Script Copied!");
+
+    updateSCLink();
+    return true;
 }
 
 function setLighting(mode) {
@@ -3498,7 +3532,7 @@ function nav(id, el){
     if(id==='library') renderLibrary();
     if(id==='saved') renderSaved();
 }
-function copyHex(){ const code = displayed.hex+(displayed.end||""); navigator.clipboard.writeText(code).then(()=>toast("Copied: " + code)); }
+function copyHex(){ const code = (displayed.sourceHex || displayed.hex)+(displayed.end||""); navigator.clipboard.writeText(code).then(()=>toast("Copied: " + code)); }
 function copyTrueBlack(){ navigator.clipboard.writeText("#000000AA").then(()=>toast("Copied: #000000AA")); }
 function toast(msg){ const t=document.getElementById('toast');t.innerText=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
