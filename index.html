@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.32
+                    Current Build: v10.33
                 </div>
             </div>
         </div>
@@ -1111,12 +1111,17 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.32)</h2>
+        <h2>Change Log (v10.33)</h2>
+
+        <h3>v10.33</h3>
+        <ul>
+            <li><b>Workflow Polish:</b> Reverted "Go to Edit Crew Page" clipboard behavior to copy only the hex code. This ensures maximum compatibility with mobile browsers that strip <code>javascript:</code> prefixes when pasting bookmarklets directly.</li>
+            <li><b>PWA Tab Breakout:</b> Retained the Android Intent logic to ensure the management page opens in a full browser environment, allowing manually saved bookmarklets to function correctly.</li>
+        </ul>
 
         <h3>v10.32</h3>
         <ul>
-            <li><b>PWA Workflow Optimization:</b> Re-engineered the "Go to Edit Crew Page" logic to force opening in a full browser tab. This bypasses the restricted PWA custom browser window, enabling full bookmarklet/injector script support on mobile.</li>
-            <li><b>Smart Bookmarklet Injection:</b> The "Go to Edit Crew Page" button now automatically builds and copies a pre-populated injector script to your clipboard with the active color settings pre-applied for a one-click experience.</li>
+            <li><b>PWA Workflow Optimization:</b> Re-engineered the "Go to Edit Crew Page" logic to force opening in a full browser tab. This bypasses the restricted PWA custom browser window.</li>
             <li><b>Engine Sim Copy Logic:</b> Refined <code>COPY HEX</code> behavior; the original hex code is now correctly captured even when "Preview True In-Game Result" (Engine Simulation) is active.</li>
         </ul>
 
@@ -1627,15 +1632,31 @@ function openSocialClub(e){
         return false; 
     }
     
-    // Build and copy pre-applied bookmarklet
+    // Copy only the hex code to clipboard
     const hex = (displayed.sourceHex || displayed.hex) + (displayed.end || "");
-    const bookmarklet = `javascript:(function(){var hex='${hex}';var hidden=document.getElementById('crewColor');var visible=document.getElementById('createCrewFormColor');if(hidden){hidden.value=hex;}if(visible){visible.value=hex;}var swatch=document.querySelector('.minicolors-swatch-color');if(swatch){swatch.style.backgroundColor=hex;}alert('Color Injected! Click Save now.');})()`;
-    
-    navigator.clipboard.writeText(bookmarklet);
-    toast("Injector Script Copied!");
+    navigator.clipboard.writeText(hex);
+    toast("Hex Code Copied!");
 
-    updateSCLink();
-    return true;
+    const formatted = name.replace(/\s+/g, '_');
+    const targetUrl = `https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`;
+
+    // Force breakout: When in PWA mode, we need to leave the "Custom Tab" or "Standalone Window"
+    // to access the browser's address bar. intent: is the only guarantee on Android.
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    const isAndroid = /Android/i.test(navigator.userAgent);
+
+    if (e) e.preventDefault();
+
+    if (isAndroid && isStandalone) {
+        // Intent breakout for Android Chrome/System browsers
+        const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;end`;
+        window.location.href = intent;
+    } else {
+        // Standard breakout attempt for Desktop/other
+        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    return false;
 }
 
 function setLighting(mode) {
