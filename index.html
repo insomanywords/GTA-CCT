@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.33
+                    Current Build: v10.34
                 </div>
             </div>
         </div>
@@ -1111,7 +1111,12 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.33)</h2>
+        <h2>Change Log (v10.34)</h2>
+
+        <h3>v10.34</h3>
+        <ul>
+            <li><b>Critical PWA Fix:</b> Hardened the Android "Tab Breakout" logic. Using a targeted Chrome Intent package to ensure the "Go to Edit Crew Page" button forces a full browser tab escape, which is required for bookmarklets to function on mobile.</li>
+        </ul>
 
         <h3>v10.33</h3>
         <ul>
@@ -1648,8 +1653,8 @@ function openSocialClub(e){
     if (e) e.preventDefault();
 
     if (isAndroid && isStandalone) {
-        // Intent breakout for Android Chrome/System browsers
-        const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;end`;
+        // Force-target Chrome to ensure breakout from PWA wrapper
+        const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(targetUrl)};end`;
         window.location.href = intent;
     } else {
         // Standard breakout attempt for Desktop/other
