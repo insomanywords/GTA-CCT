@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.34
+                    Current Build: v10.35
                 </div>
             </div>
         </div>
@@ -1111,7 +1111,13 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.34)</h2>
+        <h2>Change Log (v10.35)</h2>
+
+        <h3>v10.35</h3>
+        <ul>
+            <li><b>PWA Force Tab Breakout:</b> Re-implemented the Android "Go to Edit Crew Page" logic using a reinforced navigation scheme. This ensures the management page forces an escape from PWA standalone mode into a full Chrome tab, required for address-bar bookmarklet functionality.</li>
+            <li><b>Cross-Platform Stability:</b> Refined tab-opening logic to ensure consistent behavior across iOS, Android, and Desktop browsers.</li>
+        </ul>
 
         <h3>v10.34</h3>
         <ul>
@@ -1645,19 +1651,16 @@ function openSocialClub(e){
     const formatted = name.replace(/\s+/g, '_');
     const targetUrl = `https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`;
 
-    // Force breakout: When in PWA mode, we need to leave the "Custom Tab" or "Standalone Window"
-    // to access the browser's address bar. intent: is the only guarantee on Android.
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    const isAndroid = /Android/i.test(navigator.userAgent);
-
     if (e) e.preventDefault();
 
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
     if (isAndroid && isStandalone) {
-        // Force-target Chrome to ensure breakout from PWA wrapper
-        const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(targetUrl)};end`;
-        window.location.href = intent;
+        // googlechrome://navigate?url= is the most reliable way to force breakout of PWA Custom Tabs/WebViews
+        window.location.href = `googlechrome://navigate?url=${encodeURIComponent(targetUrl)}`;
     } else {
-        // Standard breakout attempt for Desktop/other
+        // Standard window.open for Desktop, iOS, and non-standalone Android
         window.open(targetUrl, '_blank', 'noopener,noreferrer');
     }
 
