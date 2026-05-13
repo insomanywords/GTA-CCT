@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.41
+                    Current Build: v10.42
                 </div>
             </div>
         </div>
@@ -1111,7 +1111,12 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.41)</h2>
+        <h2>Change Log (v10.42)</h2>
+
+        <h3>v10.42</h3>
+        <ul>
+            <li><b>2026 Activity Task Breakout:</b> Reconstructed the OS intent bridge to inject Android's <code>FLAG_ACTIVITY_NEW_TASK</code> (0x10000000). Combined with executing the intent directly on the top-level frame, this forces the Android window manager to spin up a completely isolated Chrome process, breaking out of the WebAPK Custom Tab (CCT) sandbox without navigating away from the PWA.</li>
+        </ul>
 
         <h3>v10.41</h3>
         <ul>
@@ -1672,15 +1677,9 @@ function updateSCLink() {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
         
         if (isAndroid && isStandalone) {
-            // v10.41 NATIVE OS ESCAPE:
-            // By completely removing the "package=com.android.chrome" directive, 
-            // the Android OS treats this as an unassociated global VIEW intent.
-            // Chrome will receive this from the OS (rather than internally from the WebAPK) 
-            // and open it in a Full Browser Tab instead of a Custom Tab.
-            const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(targetUrl)};end`;
-            link.href = intent;
-            link.target = "_self"; // Intents launch activities, _blank is unnecessary
-            link.rel = "external";
+            // v10.42 leaves href clean so standard web features work normally until click.
+            link.href = targetUrl;
+            link.target = "_blank";
         } else {
             link.href = targetUrl;
             link.target = "_blank";
@@ -1704,8 +1703,24 @@ function openSocialClub(e){
     navigator.clipboard.writeText(hex);
     toast("Hex Code Copied!");
 
-    // We MUST return true to allow the browser to natively follow the link.href we set in updateSCLink!
-    // Using JS to navigate inside this handler breaks modern Android Intent policies.
+    const formatted = name.replace(/\s+/g, '_');
+    const targetUrl = `https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`;
+
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    if (isAndroid && isStandalone) {
+        if(e) e.preventDefault();
+        
+        // v10.42 2026 TOP-LEVEL NEW-TASK BREAKOUT:
+        // By assigning the Intent to window.top.location and adding FLAG_ACTIVITY_NEW_TASK (f=268435456),
+        // we prevent WebAPK from applying target="_blank" CCT capture. The Android OS receives the intent
+        // and starts a completely new Chrome application task, keeping the PWA active in the background.
+        const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;S.browser_fallback_url=${encodeURIComponent(targetUrl)};f=268435456;end`;
+        window.top.location.href = intent;
+        return false;
+    }
+
     return true; 
 }
 
