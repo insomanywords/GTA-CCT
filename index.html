@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.36
+                    Current Build: v10.37
                 </div>
             </div>
         </div>
@@ -1111,11 +1111,17 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.36)</h2>
+        <h2>Change Log (v10.37)</h2>
+
+        <h3>v10.37</h3>
+        <ul>
+            <li><b>Structural PWA Breakout:</b> Shifted the Android breakout logic from a JS-triggered relocation to a native <code>intent://</code> HREF binding. This leverages the browser's native link-handling engine, which is significantly more reliable at escaping PWA standalone windows.</li>
+            <li><b>Manifest Scope Refinement:</b> Explicitly defined the PWA scope to ensure external domains like Rockstar Social Club are treated as strictly out-of-scope, improving system-level "Open in Browser" behavior.</li>
+        </ul>
 
         <h3>v10.36</h3>
         <ul>
-            <li><b>Hardened Breakout Logic:</b> Implemented a high-precision Android Intent breakout that targets the Chrome Browser main engine. This forces the Go to Edit Crew Page button to open a full browser tab instead of a Custom Tab, ensuring you can use the address bar for injector scripts.</li>
+            <li><b>Hardened Breakout Logic:</b> Implemented a high-precision Android Intent breakout that targets the Chrome Browser main engine.</li>
         </ul>
 
         <h3>v10.35</h3>
@@ -1630,11 +1636,27 @@ function saveCrewName(val){
 }
 
 function updateSCLink() {
-    const name = document.getElementById('crew-name-input').value.trim();
+    const nameInput = document.getElementById('crew-name-input');
+    const name = nameInput ? nameInput.value.trim() : "";
     const link = document.getElementById('sc-link');
     if(!link) return;
+    
     if(name) {
-        link.href = `https://socialclub.rockstargames.com/crew/${name.replace(/\s+/g, '_')}/manage/edit`;
+        const formatted = name.replace(/\s+/g, '_');
+        const targetUrl = `https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`;
+        
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        
+        if (isAndroid && isStandalone) {
+            // NATIVE BREAKOUT: Using intent scheme on the actual HREF is more robust than window.location.href
+            // This tells the OS to handle the link via the Chrome system browser engine.
+            link.href = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(targetUrl)};end`;
+            link.target = "_self"; // Intents handle their own window state
+        } else {
+            link.href = targetUrl;
+            link.target = "_blank";
+        }
     } else {
         link.href = "javascript:void(0)";
     }
@@ -1653,27 +1675,8 @@ function openSocialClub(e){
     navigator.clipboard.writeText(hex);
     toast("Hex Code Copied!");
 
-    const formatted = name.replace(/\s+/g, '_');
-    const targetUrl = `https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`;
-
-    if (e) e.preventDefault();
-
-    const isAndroid = /Android/i.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-    if (isAndroid && isStandalone) {
-        // Targeted Chrome Main Intent: This is the most aggressive way to force a full browser tab escape.
-        // We use a small timeout to ensure the clipboard copy finishes.
-        const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;component=com.android.chrome/com.google.android.apps.chrome.Main;end`;
-        setTimeout(() => {
-            window.location.href = intent;
-        }, 100);
-    } else {
-        // Standard window.open for Desktop, iOS, and non-standalone Android
-        window.open(targetUrl, '_blank', 'noopener,noreferrer');
-    }
-
-    return false;
+    // We already set the correct HREF in updateSCLink, so we allow the browser to follow it.
+    return true; 
 }
 
 function setLighting(mode) {
