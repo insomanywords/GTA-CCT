@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.40
+                    Current Build: v10.41
                 </div>
             </div>
         </div>
@@ -1111,7 +1111,12 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.40)</h2>
+        <h2>Change Log (v10.41)</h2>
+
+        <h3>v10.41</h3>
+        <ul>
+            <li><b>Native OS Escape Protocol:</b> Finalized the Android breakout routing by completely stripping WebAPK encapsulation constraints. The tool now yields the Social Club link directly to the Android OS layer as a global unassociated Intent, entirely bypassing Chrome Custom Tab wrappers.</li>
+        </ul>
 
         <h3>v10.40</h3>
         <ul>
@@ -1662,8 +1667,24 @@ function updateSCLink() {
     if(name) {
         const formatted = name.replace(/\s+/g, '_');
         const targetUrl = `https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`;
-        link.href = targetUrl;
-        link.target = "_blank";
+        
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        
+        if (isAndroid && isStandalone) {
+            // v10.41 NATIVE OS ESCAPE:
+            // By completely removing the "package=com.android.chrome" directive, 
+            // the Android OS treats this as an unassociated global VIEW intent.
+            // Chrome will receive this from the OS (rather than internally from the WebAPK) 
+            // and open it in a Full Browser Tab instead of a Custom Tab.
+            const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(targetUrl)};end`;
+            link.href = intent;
+            link.target = "_self"; // Intents launch activities, _blank is unnecessary
+            link.rel = "external";
+        } else {
+            link.href = targetUrl;
+            link.target = "_blank";
+        }
     } else {
         link.href = "javascript:void(0)";
     }
@@ -1683,37 +1704,8 @@ function openSocialClub(e){
     navigator.clipboard.writeText(hex);
     toast("Hex Code Copied!");
 
-    const formatted = name.replace(/\s+/g, '_');
-    const targetUrl = `https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`;
-
-    const isAndroid = /Android/i.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-    if (isAndroid && isStandalone) {
-        if(e) e.preventDefault();
-        
-        // v10.39-2026 BREAKOUT:
-        // Using a "Triple-Zero" intent (No Session, No Warmup, Explicit Opt-Out)
-        // to force the OS to bypass the current PWA / Chrome Custom Tab instance.
-        // We also use a 'Hidden Anchor' trigger for cleaner OS handover.
-        const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;S.android.support.customtabs.extra.SESSION=null;B.android.support.customtabs.extra.USER_OPT_OUT=true;B.com.android.chrome.browser.open_with_chrome=true;S.com.android.browser.application_id=com.android.chrome;l.android.intent.extra.browser.nav_flags=1;end`;
-        
-        const breakoutLink = document.createElement('a');
-        breakoutLink.href = intent;
-        document.body.appendChild(breakoutLink);
-        breakoutLink.click();
-        
-        // Defensive backup
-        setTimeout(() => {
-            if (breakoutLink && breakoutLink.parentNode) {
-                document.body.removeChild(breakoutLink);
-            }
-        }, 100);
-        
-        return false;
-    }
-
-    // On Desktop/iOS, we allow the standard href to function
+    // We MUST return true to allow the browser to natively follow the link.href we set in updateSCLink!
+    // Using JS to navigate inside this handler breaks modern Android Intent policies.
     return true; 
 }
 
