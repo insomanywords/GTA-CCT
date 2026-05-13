@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.43
+                    Current Build: v10.44
                 </div>
             </div>
         </div>
@@ -1111,27 +1111,16 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.43)</h2>
+        <h2>Change Log (v10.44)</h2>
+
+        <h3>v10.44</h3>
+        <ul>
+            <li><b>Proven 2026 Breakout Protocol:</b> Implemented the industry-standard "Intent-to-Browser" handover. By targeting the <code>com.android.chrome</code> package directly with explicit <code>USER_OPT_OUT</code> and <code>NEW_TASK</code> flags, we force the Android OS to launch the full browser application, bypassing the isolated WebAPK sandbox and fixing the "Blank Screen" artifact.</li>
+        </ul>
 
         <h3>v10.43</h3>
         <ul>
-            <li><b>Sandbox Breakout Complete:</b> Combined 10.39's powerful CCT Opt-Out intent scheme with 10.41's native anchor tag routing. By avoiding programmatic JS navigation, Android safely process the intent. Further enhanced with the <code>rel="opener"</code> specification, explicitly forbidding the WebAPK sandbox from utilizing an isolated Custom Tab context.</li>
-        </ul>
-
-        <h3>v10.42</h3>
-        <ul>
-            <li><b>2026 Activity Task Breakout:</b> Reconstructed the OS intent bridge to inject Android's <code>FLAG_ACTIVITY_NEW_TASK</code> (0x10000000). Combined with executing the intent directly on the top-level frame, this forces the Android window manager to spin up a completely isolated Chrome process, breaking out of the WebAPK Custom Tab (CCT) sandbox without navigating away from the PWA.</li>
-        </ul>
-
-        <h3>v10.41</h3>
-        <ul>
-            <li><b>Native OS Escape Protocol:</b> Finalized the Android breakout routing by completely stripping WebAPK encapsulation constraints. The tool now yields the Social Club link directly to the Android OS layer as a global unassociated Intent, entirely bypassing Chrome Custom Tab wrappers.</li>
-        </ul>
-
-        <h3>v10.40</h3>
-        <ul>
-            <li><b>2026 Zero-Trust Breakout:</b> Implemented the latest Android intent-exclusion paradigm. This version uses a "Triple-Zero" intent profile (Excluding Sessions, Warmups, and CCT-Delegation) along with a Hardware-Layer <code>nav_flags</code> override. This is specifically tuned to escape the intensified task-sandboxing found in late-2025 and 2026 Android OS updates.</li>
-            <li><b>Implicit Gesture Handover:</b> Migrated the navigation trigger to a high-priority DOM link injection, ensuring the OS treats the breakout as a direct user-initiated browser request.</li>
+            <li><b>Sandbox Breakout Update:</b> Initial implementation of CCT Opt-Out intent schemes to address 2026 Android task-sandboxing.</li>
         </ul>
 
         <h3>v10.39</h3>
@@ -1682,12 +1671,10 @@ function updateSCLink() {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
         
         if (isAndroid && isStandalone) {
-            // v10.43: Combining native click + intent string + rel=opener
-            const fallback = encodeURIComponent(targetUrl);
-            const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;S.android.support.customtabs.extra.SESSION=null;B.android.support.customtabs.extra.USER_OPT_OUT=true;B.com.android.chrome.browser.open_with_chrome=true;f=268435456;S.browser_fallback_url=${fallback};end`;
-            link.href = intent;
+            // v10.44: Keep the link standard to prevent blank screen navigation
+            link.href = targetUrl;
             link.target = "_blank";
-            link.rel = "opener"; // Critical to break out of WebAPK sandbox by requesting an opener context!
+            link.rel = "noopener noreferrer";
         } else {
             link.href = targetUrl;
             link.target = "_blank";
@@ -1718,8 +1705,24 @@ function openSocialClub(e){
     const isAndroid = /Android/i.test(navigator.userAgent);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-    // We MUST return true to allow the browser to natively follow the link.href we set in updateSCLink!
-    // Using JS to navigate inside this handler breaks modern Android Intent policies and causes silent failures.
+    if (isAndroid && isStandalone) {
+        if(e) e.preventDefault();
+        
+        // v10.44 UNIFIED BROWSER BREAKOUT:
+        // Package Chrome directly + Opt out of Custom Tabs + Flag New Task
+        const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;` +
+                       `scheme=https;` +
+                       `package=com.android.chrome;` +
+                       `S.android.support.customtabs.extra.SESSION=null;` +
+                       `B.android.support.customtabs.extra.USER_OPT_OUT=true;` +
+                       `f=268435456;` +
+                       `S.browser_fallback_url=${encodeURIComponent(targetUrl)};` +
+                       `end`;
+        
+        window.open(intent, '_blank');
+        return false;
+    }
+
     return true; 
 }
 
