@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.37
+                    Current Build: v10.38
                 </div>
             </div>
         </div>
@@ -1111,7 +1111,13 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.37)</h2>
+        <h2>Change Log (v10.38)</h2>
+
+        <h3>v10.38</h3>
+        <ul>
+            <li><b>Android Chrome Breakout:</b> Implemented a high-priority <code>googlechrome://</code> scheme for Android standalone mode. This is specifically designed to escape restricted Chrome Custom Tabs and force navigation into the full system browser.</li>
+            <li><b>Manifest Link-Capture Suppression:</b> Added <code>capture_links: none</code> to the PWA manifest, instructing the OS to defer link handling to the system's external browser rather than the PWA instance.</li>
+        </ul>
 
         <h3>v10.37</h3>
         <ul>
@@ -1649,10 +1655,13 @@ function updateSCLink() {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
         
         if (isAndroid && isStandalone) {
-            // NATIVE BREAKOUT: Using intent scheme on the actual HREF is more robust than window.location.href
-            // This tells the OS to handle the link via the Chrome system browser engine.
-            link.href = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(targetUrl)};end`;
-            link.target = "_self"; // Intents handle their own window state
+            // v10.38 HARD BREAKOUT:
+            // We use the 'googlechrome://' scheme which many Android versions treat as a high-priority 
+            // intent to open the full browser. We also include a fallback for safety.
+            const chromeLink = `googlechrome://navigate?url=${encodeURIComponent(targetUrl)}`;
+            link.href = chromeLink;
+            link.setAttribute('rel', 'external'); // Hint to PWA engines to not handle this link
+            link.target = "_system"; // Often used in hybrid wrappers to force system browser
         } else {
             link.href = targetUrl;
             link.target = "_blank";
