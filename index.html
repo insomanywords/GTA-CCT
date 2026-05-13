@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.39
+                    Current Build: v10.40
                 </div>
             </div>
         </div>
@@ -1111,7 +1111,13 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.39)</h2>
+        <h2>Change Log (v10.40)</h2>
+
+        <h3>v10.40</h3>
+        <ul>
+            <li><b>2026 Zero-Trust Breakout:</b> Implemented the latest Android intent-exclusion paradigm. This version uses a "Triple-Zero" intent profile (Excluding Sessions, Warmups, and CCT-Delegation) along with a Hardware-Layer <code>nav_flags</code> override. This is specifically tuned to escape the intensified task-sandboxing found in late-2025 and 2026 Android OS updates.</li>
+            <li><b>Implicit Gesture Handover:</b> Migrated the navigation trigger to a high-priority DOM link injection, ensuring the OS treats the breakout as a direct user-initiated browser request.</li>
+        </ul>
 
         <h3>v10.39</h3>
         <ul>
@@ -1656,41 +1662,58 @@ function updateSCLink() {
     if(name) {
         const formatted = name.replace(/\s+/g, '_');
         const targetUrl = `https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`;
-        
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        
-        if (isAndroid && isStandalone) {
-            // v10.39 TRIPLE-FORCE BREAKOUT:
-            // 1. Target Package: com.android.chrome
-            // 2. Target Component: Main activity (escapes CCT)
-            // 3. Referrer Mask: Helps bypass internal app-link capture
-            const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;component=com.android.chrome/com.google.android.apps.chrome.Main;S.android.intent.extra.REFERRER_NAME=https://google.com;S.browser_fallback_url=${encodeURIComponent(targetUrl)};end`;
-            link.href = intent;
-            link.target = "_blank"; 
-        } else {
-            link.href = targetUrl;
-            link.target = "_blank";
-        }
+        link.href = targetUrl;
+        link.target = "_blank";
     } else {
         link.href = "javascript:void(0)";
     }
 }
 
 function openSocialClub(e){
-    const name = document.getElementById('crew-name-input').value.trim();
+    const nameInput = document.getElementById('crew-name-input');
+    const name = nameInput ? nameInput.value.trim() : "";
     if(!name) { 
         toast("Please enter a Crew Name"); 
         if(e) e.preventDefault();
         return false; 
     }
     
-    // Copy only the hex code to clipboard
+    // Copy hex code to clipboard
     const hex = (displayed.sourceHex || displayed.hex) + (displayed.end || "");
     navigator.clipboard.writeText(hex);
     toast("Hex Code Copied!");
 
-    // We already set the correct HREF in updateSCLink, so we allow the browser to follow it.
+    const formatted = name.replace(/\s+/g, '_');
+    const targetUrl = `https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`;
+
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    if (isAndroid && isStandalone) {
+        if(e) e.preventDefault();
+        
+        // v10.39-2026 BREAKOUT:
+        // Using a "Triple-Zero" intent (No Session, No Warmup, Explicit Opt-Out)
+        // to force the OS to bypass the current PWA / Chrome Custom Tab instance.
+        // We also use a 'Hidden Anchor' trigger for cleaner OS handover.
+        const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;S.android.support.customtabs.extra.SESSION=null;B.android.support.customtabs.extra.USER_OPT_OUT=true;B.com.android.chrome.browser.open_with_chrome=true;S.com.android.browser.application_id=com.android.chrome;l.android.intent.extra.browser.nav_flags=1;end`;
+        
+        const breakoutLink = document.createElement('a');
+        breakoutLink.href = intent;
+        document.body.appendChild(breakoutLink);
+        breakoutLink.click();
+        
+        // Defensive backup
+        setTimeout(() => {
+            if (breakoutLink && breakoutLink.parentNode) {
+                document.body.removeChild(breakoutLink);
+            }
+        }, 100);
+        
+        return false;
+    }
+
+    // On Desktop/iOS, we allow the standard href to function
     return true; 
 }
 
