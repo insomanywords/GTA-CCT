@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gta-color-tool-v10.45';
+const CACHE_NAME = 'gta-color-tool-v10.46';
 const ASSETS = [
   './',
   './index.html',
