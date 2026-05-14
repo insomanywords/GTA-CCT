@@ -1047,7 +1047,7 @@
                 <button class="btn btn-sec" style="margin-top:20px;" onclick="document.getElementById('changelog-modal').classList.add('open')">View Change Log</button>
 
                 <div style="font-size: 0.7rem; opacity: 0.3; text-align: center; margin-top: 20px; border-top: 1px solid #222; padding-top: 10px;">
-                    Current Build: v10.44
+                    Current Build: v10.45
                 </div>
             </div>
         </div>
@@ -1111,7 +1111,12 @@
 <div class="modal-overlay" id="changelog-modal">
     <div class="modal">
         <button class="close-modal" onclick="closeModal('changelog-modal')">✕</button>
-        <h2>Change Log (v10.44)</h2>
+        <h2>Change Log (v10.45)</h2>
+
+        <h3>v10.45</h3>
+        <ul>
+            <li><b>Perfect PWA Breakout Handover:</b> Resolved the "blank screen" webview artifact correctly. By assigning the intent directly to <code>window.location.href</code> instead of <code>window.open</code>, the internal browser cancels the navigation inside the PWA while simultaneously triggering the native Android OS intent. This flawlessly hands over the link to full Chrome without leaving behind an empty "ghost" window in the PWA.</li>
+        </ul>
 
         <h3>v10.44</h3>
         <ul>
@@ -1694,11 +1699,6 @@ function openSocialClub(e){
         return false; 
     }
     
-    // Copy hex code to clipboard
-    const hex = (displayed.sourceHex || displayed.hex) + (displayed.end || "");
-    navigator.clipboard.writeText(hex);
-    toast("Hex Code Copied!");
-
     const formatted = name.replace(/\s+/g, '_');
     const targetUrl = `https://socialclub.rockstargames.com/crew/${formatted}/manage/edit`;
 
@@ -1708,8 +1708,10 @@ function openSocialClub(e){
     if (isAndroid && isStandalone) {
         if(e) e.preventDefault();
         
-        // v10.44 UNIFIED BROWSER BREAKOUT:
-        // Package Chrome directly + Opt out of Custom Tabs + Flag New Task
+        // v10.45 PERFECT PWA BREAKOUT:
+        // Use the intent scheme but navigate the CURRENT frame context rather than '_blank'.
+        // This triggers the Android OS intent resolver to launch full Chrome, but because it's an intent,
+        // the browser cancels the internal navigation, leaving the PWA open and un-blanked.
         const intent = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;` +
                        `scheme=https;` +
                        `package=com.android.chrome;` +
@@ -1719,7 +1721,7 @@ function openSocialClub(e){
                        `S.browser_fallback_url=${encodeURIComponent(targetUrl)};` +
                        `end`;
         
-        window.open(intent, '_blank');
+        window.location.href = intent;
         return false;
     }
 
